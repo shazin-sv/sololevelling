@@ -1,0 +1,13 @@
+{
+  "name": "herofit",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "backend": "cd backend && npm start",
+    "backend:seed": "cd backend && npm run seed",
+    "frontend": "cd frontend && npm start",
+    "frontend:web": "cd frontend && npm run web",
+    "frontend:android": "cd frontend && npm run android",
+    "frontend:ios": "cd frontend && npm run ios"
+  }
+}
