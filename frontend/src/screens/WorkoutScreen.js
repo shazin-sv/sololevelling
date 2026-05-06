@@ -38,6 +38,9 @@ export default function WorkoutScreen({ route, navigation }) {
     replaceExercise,
     replacements,
     getExerciseStatus,
+    resetDay,
+    saveProgress,
+    saveStatus,
   } = useApp();
 
   const isToday = day === today;
@@ -388,9 +391,39 @@ export default function WorkoutScreen({ route, navigation }) {
           {firstPendingIndex === -1 && isToday ? (
             <View style={styles.completePanel}>
               <Text style={styles.completeTitle}>ALL CARDS RESOLVED ⚔️</Text>
-              <Text style={styles.completeText}>Green swipes bank XP. Red swipes punish misses. This is the feel you asked for.</Text>
+              {cards.map((card) => (
+                <View key={card.id} style={styles.summaryRow}>
+                  <Text style={styles.summaryIcon}>{card.status === 'complete' ? '✅' : '❌'}</Text>
+                  <Text style={[styles.summaryText, card.status === 'complete' ? styles.summaryDone : styles.summarySkipped]}>
+                    {card.name}
+                  </Text>
+                  <Text style={styles.summarySets}>{card.sets}</Text>
+                </View>
+              ))}
+              <TouchableOpacity onPress={resetDay} style={[styles.resetBtn, { borderColor: schedule.color || '#555' }]}>
+                <Text style={styles.resetBtnText}>RESET DAY</Text>
+              </TouchableOpacity>
             </View>
           ) : null}
+
+          {isToday && (
+            <TouchableOpacity
+              onPress={saveProgress}
+              disabled={saveStatus === 'saving'}
+              style={[
+                styles.saveBtn,
+                {
+                  backgroundColor:
+                    saveStatus === 'saved' ? '#15803D' : saveStatus === 'error' ? '#991B1B' : schedule.color || '#1E90FF',
+                  opacity: saveStatus === 'saving' ? 0.6 : 1,
+                },
+              ]}
+            >
+              <Text style={styles.saveBtnText}>
+                {saveStatus === 'saving' ? 'SAVING...' : saveStatus === 'saved' ? 'SAVED ✓' : saveStatus === 'error' ? 'SAVE FAILED ✗' : 'SAVE PROGRESS'}
+              </Text>
+            </TouchableOpacity>
+          )}
         </ComicPanel>
 
         <ExplosionEffect active={explodingId === currentCard?.id} color={schedule.color || '#FFD700'} />
@@ -789,5 +822,72 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     flex: 1,
     lineHeight: 20,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#222222',
+  },
+  summaryIcon: {
+    fontSize: 14,
+    marginRight: 8,
+  },
+  summaryText: {
+    flex: 1,
+    color: '#DDDDDD',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  summaryDone: {
+    color: '#22C55E',
+    textDecorationLine: 'line-through',
+  },
+  summarySkipped: {
+    color: '#EF4444',
+    textDecorationLine: 'line-through',
+  },
+  summarySets: {
+    color: '#888888',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  resetBtn: {
+    marginTop: 14,
+    borderWidth: 2,
+    borderColor: '#555555',
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 8,
+    backgroundColor: '#111111',
+  },
+  resetBtnText: {
+    color: '#FFFFFF',
+    fontWeight: '900',
+    fontSize: 12,
+    letterSpacing: 1,
+  },
+  saveBtn: {
+    marginTop: 14,
+    borderWidth: 2,
+    borderColor: '#000000',
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 6,
+  },
+  saveBtnText: {
+    color: '#FFFFFF',
+    fontWeight: '900',
+    fontSize: 14,
+    letterSpacing: 1,
+    textShadowColor: '#000',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 0,
   },
 });

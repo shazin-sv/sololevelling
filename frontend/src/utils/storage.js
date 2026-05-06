@@ -29,12 +29,24 @@ function defaultProgress() {
   };
 }
 
-async function syncRemote() {
+export async function batchSaveProgress(progress) {
   try {
-    const progress = await exportProgress();
+    await AsyncStorage.multiSet([
+      [KEYS.COMPLETED, JSON.stringify(progress.completed || {})],
+      [KEYS.STREAK, String(progress.streak || 0)],
+      [KEYS.LAST_WORKOUT_DATE, progress.lastWorkoutDate || ''],
+      [KEYS.XP, String(progress.xp || 0)],
+      [KEYS.TOTAL_COMPLETED, String(progress.totalCompleted || 0)],
+      [KEYS.WEEKS_COMPLETED, String(progress.weeksCompleted || 0)],
+      [KEYS.LEG_DAYS, String(progress.legDaysCompleted || 0)],
+      [KEYS.BADGES_EARNED, JSON.stringify(progress.badgesEarned || [])],
+      [KEYS.REPLACEMENTS, JSON.stringify(progress.replacements || {})],
+      [KEYS.NOTIFICATIONS_ENABLED, String(!!progress.notificationsEnabled)],
+    ]);
     await saveRemoteProgress(progress);
-  } catch {
-    // stay usable offline / if backend is unavailable
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error?.message || 'Save failed' };
   }
 }
 
@@ -113,7 +125,6 @@ export async function getCompletedExercises() {
 export async function saveCompletedExercises(completed) {
   try {
     await AsyncStorage.setItem(KEYS.COMPLETED, JSON.stringify(completed));
-    await syncRemote();
   } catch {
     // silently fail
   }
@@ -131,7 +142,6 @@ export async function getStreak() {
 export async function saveStreak(streak) {
   try {
     await AsyncStorage.setItem(KEYS.STREAK, String(streak));
-    await syncRemote();
   } catch {
     // silently fail
   }
@@ -149,7 +159,6 @@ export async function getLastWorkoutDate() {
 export async function saveLastWorkoutDate(date) {
   try {
     await AsyncStorage.setItem(KEYS.LAST_WORKOUT_DATE, date || '');
-    await syncRemote();
   } catch {
     // silently fail
   }
@@ -167,7 +176,6 @@ export async function getXP() {
 export async function saveXP(xp) {
   try {
     await AsyncStorage.setItem(KEYS.XP, String(xp));
-    await syncRemote();
   } catch {
     // silently fail
   }
@@ -185,7 +193,6 @@ export async function getTotalCompleted() {
 export async function saveTotalCompleted(total) {
   try {
     await AsyncStorage.setItem(KEYS.TOTAL_COMPLETED, String(total));
-    await syncRemote();
   } catch {
     // silently fail
   }
@@ -203,7 +210,6 @@ export async function getWeeksCompleted() {
 export async function saveWeeksCompleted(weeks) {
   try {
     await AsyncStorage.setItem(KEYS.WEEKS_COMPLETED, String(weeks));
-    await syncRemote();
   } catch {
     // silently fail
   }
@@ -221,7 +227,6 @@ export async function getLegDaysCompleted() {
 export async function saveLegDaysCompleted(days) {
   try {
     await AsyncStorage.setItem(KEYS.LEG_DAYS, String(days));
-    await syncRemote();
   } catch {
     // silently fail
   }
@@ -239,7 +244,6 @@ export async function getBadgesEarned() {
 export async function saveBadgesEarned(badges) {
   try {
     await AsyncStorage.setItem(KEYS.BADGES_EARNED, JSON.stringify(badges));
-    await syncRemote();
   } catch {
     // silently fail
   }
@@ -257,7 +261,6 @@ export async function getReplacements() {
 export async function saveReplacements(replacements) {
   try {
     await AsyncStorage.setItem(KEYS.REPLACEMENTS, JSON.stringify(replacements));
-    await syncRemote();
   } catch {
     // silently fail
   }
@@ -275,7 +278,6 @@ export async function getNotificationsEnabled() {
 export async function saveNotificationsEnabled(enabled) {
   try {
     await AsyncStorage.setItem(KEYS.NOTIFICATIONS_ENABLED, String(enabled));
-    await syncRemote();
   } catch {
     // silently fail
   }

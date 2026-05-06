@@ -153,6 +153,16 @@ app.get('/me', authMiddleware, async (req, res) => {
   }
 });
 
+app.get('/progress', authMiddleware, async (req, res) => {
+  try {
+    const progress = await getProgress(req.user.id);
+    res.json({ ok: true, progress });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Could not load progress' });
+  }
+});
+
 app.put('/progress', authMiddleware, async (req, res) => {
   try {
     const progress = await upsertProgress(req.user.id, req.body?.progress || {});

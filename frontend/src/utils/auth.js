@@ -66,11 +66,11 @@ async function request(path, options = {}) {
   let response;
   try {
     response = await fetch(`${baseUrl}${path}`, {
+      ...options,
       headers: {
         'Content-Type': 'application/json',
         ...(options.headers || {}),
       },
-      ...options,
     });
   } catch {
     throw new Error(`Failed to fetch from ${baseUrl}. Make sure the API server is running and reachable.`);
@@ -139,7 +139,9 @@ export async function getProfile() {
 
 export async function saveRemoteProgress(progress) {
   const session = await getStoredSession();
-  if (!session?.token) return;
+  if (!session?.token) {
+    throw new Error('Not authenticated. Cannot save progress.');
+  }
 
   const result = await request('/progress', {
     method: 'PUT',

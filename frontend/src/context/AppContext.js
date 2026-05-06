@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import { WEEK_DAYS, WORKOUT_SCHEDULE, BADGES, LEVELS } from '../data/workouts';
 import * as Storage from '../utils/storage';
+import { getProfile } from '../utils/auth';
 
 const AppContext = createContext();
 
@@ -86,6 +87,7 @@ const initialState = {
   today: getDayName(),
   todayKey: getTodayKey(),
   notificationsEnabled: false,
+  saveStatus: 'idle',
 };
 
 function reducer(state, action) {
@@ -125,6 +127,8 @@ function reducer(state, action) {
     }
     case 'TOGGLE_NOTIFICATIONS':
       return { ...state, notificationsEnabled: action.payload };
+    case 'SAVE_STATUS':
+      return { ...state, saveStatus: action.payload };
     default:
       return state;
   }
@@ -178,12 +182,37 @@ export function AppProvider({ children, session = null, setSession = null }) {
   }, []);
 
   useEffect(() => {
-    Storage.saveCompletedExercises(state.completed);
-    Storage.saveXP(state.xp);
-    Storage.saveTotalCompleted(state.totalCompleted);
-    Storage.saveBadgesEarned(state.badgesEarned);
-    Storage.saveReplacements(state.replacements);
-  }, [state.completed, state.xp, state.totalCompleted, state.badgesEarned, state.replacements]);
+    async function autoSave() {
+      const progress = {
+        completed: state.completed,
+        streak: state.streak,
+        lastWorkoutDate: state.lastWorkoutDate,
+        xp: state.xp,
+        totalCompleted: state.totalCompleted,
+        weeksCompleted: state.weeksCompleted,
+        legDaysCompleted: state.legDaysCompleted,
+        badgesEarned: state.badgesEarned,
+        replacements: state.replacements,
+        notificationsEnabled: state.notificationsEnabled,
+      };
+      dispatch({ type: 'SAVE_STATUS', payload: 'saving' });
+      const result = await Storage.batchSaveProgress(progress);
+      dispatch({ type: 'SAVE_STATUS', payload: result.success ? 'saved' : 'error' });
+      setTimeout(() => dispatch({ type: 'SAVE_STATUS', payload: 'idle' }), 1500);
+    }
+    autoSave();
+  }, [
+    state.completed,
+    state.streak,
+    state.lastWorkoutDate,
+    state.xp,
+    state.totalCompleted,
+    state.weeksCompleted,
+    state.legDaysCompleted,
+    state.badgesEarned,
+    state.replacements,
+    state.notificationsEnabled,
+  ]);
 
   const decideExercise = useCallback(
     async (exerciseId, decision = 'complete') => {
@@ -207,8 +236,6 @@ export function AppProvider({ children, session = null, setSession = null }) {
       }
       if (last !== today) {
         dispatch({ type: 'UPDATE_STREAK', payload: { streak: newStreak, date: today } });
-        await Storage.saveStreak(newStreak);
-        await Storage.saveLastWorkoutDate(today);
       }
 
       const stats = {
@@ -248,8 +275,53 @@ export function AppProvider({ children, session = null, setSession = null }) {
   const toggleNotifications = useCallback(async () => {
     const next = !state.notificationsEnabled;
     dispatch({ type: 'TOGGLE_NOTIFICATIONS', payload: next });
-    await Storage.saveNotificationsEnabled(next);
   }, [state.notificationsEnabled]);
+
+  const saveProgress = useCallback(async () => {
+    dispatch({ type: 'SAVE_STATUS', payload: 'saving' });
+    const progress = {
+      completed: state.completed,
+      streak: state.streak,
+      lastWorkoutDate: state.lastWorkoutDate,
+      xp: state.xp,
+      totalCompleted: state.totalCompleted,
+      weeksCompleted: state.weeksCompleted,
+      legDaysCompleted: state.legDaysCompleted,
+      badgesEarned: state.badgesEarned,
+      replacements: state.replacements,
+      notificationsEnabled: state.notificationsEnabled,
+    };
+    const result = await Storage.batchSaveProgress(progress);
+    dispatch({ type: 'SAVE_STATUS', payload: result.success ? 'saved' : 'error' });
+    setTimeout(() => dispatch({ type: 'SAVE_STATUS', payload: 'idle' }), 2000);
+    return result;
+  }, [state]);
+
+  const refreshFromServer = useCallback(async () => {
+    try {
+      const profile = await getProfile();
+      if (profile?.progress) {
+        dispatch({
+          type: 'INIT',
+          payload: {
+            completed: profile.progress.completed,
+            streak: profile.progress.streak,
+            lastWorkoutDate: profile.progress.lastWorkoutDate,
+            xp: profile.progress.xp,
+            totalCompleted: profile.progress.totalCompleted,
+            weeksCompleted: profile.progress.weeksCompleted,
+            legDaysCompleted: profile.progress.legDaysCompleted,
+            badgesEarned: profile.progress.badgesEarned,
+            replacements: profile.progress.replacements,
+            notificationsEnabled: profile.progress.notificationsEnabled,
+          },
+        });
+        await Storage.hydrateProgress(profile.progress);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const todayWorkout = WORKOUT_SCHEDULE[state.today] || WORKOUT_SCHEDULE.Monday;
   const todayExercises = todayWorkout.exercises.map((ex, i) => {
@@ -284,6 +356,8 @@ export function AppProvider({ children, session = null, setSession = null }) {
     replaceExercise,
     resetDay,
     toggleNotifications,
+    saveProgress,
+    refreshFromServer,
     WORKOUT_SCHEDULE,
     WEEK_DAYS,
     BADGES,

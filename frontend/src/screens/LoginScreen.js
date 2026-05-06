@@ -11,8 +11,8 @@ import {
 import { login } from '../utils/auth';
 
 export default function LoginScreen({ onLoggedIn }) {
-  const [username, setUsername] = useState('shazin354');
-  const [password, setPassword] = useState('Chachu354');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -62,8 +62,7 @@ export default function LoginScreen({ onLoggedIn }) {
 
         <View style={styles.hintBox}>
           <Text style={styles.hintLabel}>SEEDED ACCOUNT</Text>
-          <Text style={styles.hintText}>Username: shazin354</Text>
-          <Text style={styles.hintText}>Password: Chachu354</Text>
+          <Text style={styles.hintText}>please contact admin</Text>
         </View>
       </View>
     </View>

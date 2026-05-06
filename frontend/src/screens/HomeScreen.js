@@ -32,6 +32,10 @@ export default function HomeScreen({ navigation }) {
     WORKOUT_SCHEDULE,
     user,
     setSession,
+    refreshFromServer,
+    totalCompleted,
+    saveProgress,
+    saveStatus,
   } = useApp();
 
   const dayColor = todayWorkout.color || '#1E90FF';
@@ -66,6 +70,26 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.headerRight}>
             <TouchableOpacity onPress={() => navigation.navigate('Badges')} style={styles.badgeBtn}>
               <Text style={styles.badgeBtnText}>🏅 BADGES</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={refreshFromServer} style={styles.syncBtn}>
+              <Text style={styles.syncBtnText}>↻ SYNC</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={saveProgress}
+              disabled={saveStatus === 'saving'}
+              style={[
+                styles.saveBtn,
+                {
+                  backgroundColor:
+                    saveStatus === 'saved' ? '#15803D' : saveStatus === 'error' ? '#991B1B' : '#1E1E1E',
+                  opacity: saveStatus === 'saving' ? 0.6 : 1,
+                  borderColor: saveStatus === 'saved' ? '#22C55E' : saveStatus === 'error' ? '#EF4444' : '#22C55E',
+                },
+              ]}
+            >
+              <Text style={styles.saveBtnText}>
+                {saveStatus === 'saving' ? 'SAVING...' : saveStatus === 'saved' ? 'SAVED ✓' : saveStatus === 'error' ? 'FAIL ✗' : '💾 SAVE'}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
               <Text style={styles.logoutBtnText}>LOG OUT</Text>
@@ -150,6 +174,44 @@ export default function HomeScreen({ navigation }) {
           </TouchableOpacity>
         )}
 
+        {/* TOTAL STATS */}
+        <View style={styles.statsRow}>
+          <View style={[styles.statBox, { borderColor: '#FFD700' }]}>
+            <Text style={styles.statBoxValue}>{totalCompleted}</Text>
+            <Text style={styles.statBoxLabel}>WORKOUTS DONE</Text>
+          </View>
+          <View style={[styles.statBox, { borderColor: '#E23636' }]}>
+            <Text style={styles.statBoxValue}>{streak}</Text>
+            <Text style={styles.statBoxLabel}>DAY STREAK</Text>
+          </View>
+        </View>
+
+        {/* TODAY'S EXERCISE CHECKLIST */}
+        {!isRest && (
+          <ComicPanel
+            color="#141414"
+            borderColor={dayColor}
+            title="TODAY'S QUEST LOG"
+            titleColor={dayColor}
+            style={{ marginTop: 16 }}
+          >
+            {todayExercises.map((ex) => {
+              const status = completed[todayKey]?.[ex.id];
+              const isDone = status === 'complete';
+              const isSkipped = status === 'skip';
+              return (
+                <View key={ex.id} style={styles.checkRow}>
+                  <Text style={styles.checkIcon}>{isDone ? '✅' : isSkipped ? '❌' : '⏳'}</Text>
+                  <Text style={[styles.checkText, isDone && styles.checkDone, isSkipped && styles.checkSkipped]}>
+                    {ex.name}
+                  </Text>
+                  <Text style={styles.checkSets}>{ex.sets}</Text>
+                </View>
+              );
+            })}
+          </ComicPanel>
+        )}
+
         {/* WEEKLY SCHEDULE PREVIEW */}
         <TouchableOpacity onPress={() => setShowWeekly(!showWeekly)} style={styles.toggleWeekly}>
           <Text style={styles.toggleWeeklyText}>
@@ -173,6 +235,21 @@ export default function HomeScreen({ navigation }) {
                   <Text style={[styles.dayName, { color: schedule.color || '#FFF' }]}>
                     {dayName.slice(0, 3).toUpperCase()}
                   </Text>
+                  {isToday && todayTotal > 0 && (
+                    <View
+                      style={[
+                        styles.dayPill,
+                        {
+                          backgroundColor:
+                            todayCompletedCount === todayTotal ? '#22C55E' : schedule.color || '#555',
+                        },
+                      ]}
+                    >
+                      <Text style={styles.dayPillText}>
+                        {todayCompletedCount}/{todayTotal}
+                      </Text>
+                    </View>
+                  )}
                   <Text style={styles.dayTitle} numberOfLines={1}>
                     {schedule.title}
                   </Text>
@@ -427,5 +504,98 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '700',
     textAlign: 'center',
+  },
+  syncBtn: {
+    borderWidth: 2,
+    borderColor: '#22C55E',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    backgroundColor: '#020617',
+  },
+  syncBtnText: {
+    color: '#22C55E',
+    fontWeight: '900',
+    fontSize: 10,
+    letterSpacing: 1,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 16,
+  },
+  statBox: {
+    flex: 1,
+    backgroundColor: '#111111',
+    borderWidth: 2,
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  statBoxValue: {
+    color: '#FFFFFF',
+    fontSize: 22,
+    fontWeight: '900',
+  },
+  statBoxLabel: {
+    color: '#888888',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1,
+    marginTop: 4,
+  },
+  checkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#222222',
+  },
+  checkIcon: {
+    fontSize: 14,
+    marginRight: 10,
+  },
+  checkText: {
+    flex: 1,
+    color: '#DDDDDD',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  checkDone: {
+    color: '#22C55E',
+    textDecorationLine: 'line-through',
+  },
+  checkSkipped: {
+    color: '#EF4444',
+    textDecorationLine: 'line-through',
+  },
+  checkSets: {
+    color: '#888888',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  dayPill: {
+    borderRadius: 999,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginVertical: 4,
+  },
+  dayPillText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '900',
+  },
+  saveBtn: {
+    borderWidth: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    backgroundColor: '#1E1E1E',
+  },
+  saveBtnText: {
+    color: '#22C55E',
+    fontWeight: '900',
+    fontSize: 10,
+    letterSpacing: 1,
   },
 });
