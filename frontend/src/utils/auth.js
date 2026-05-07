@@ -3,7 +3,7 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 const SESSION_KEY = 'herofit_session';
-const API_PORT = '9001';
+const API_PORT = '5000';
 
 function normalizeBaseUrl(value) {
   if (!value || typeof value !== 'string') return null;

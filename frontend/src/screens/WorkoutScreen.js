@@ -8,6 +8,8 @@ import {
   Animated,
   PanResponder,
   ImageBackground,
+  ScrollView,
+  Platform,
 } from 'react-native';
 import { useApp } from '../context/AppContext';
 import { ALTERNATE_EXERCISES, WORKOUT_SCHEDULE, getExerciseVisual } from '../data/workouts';
@@ -155,7 +157,11 @@ export default function WorkoutScreen({ route, navigation }) {
     return (
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
-        <View style={styles.scroll}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scroll}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.header}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
               <Text style={styles.backText}>← BACK</Text>
@@ -182,7 +188,7 @@ export default function WorkoutScreen({ route, navigation }) {
               ))}
             </View>
           </ComicPanel>
-        </View>
+        </ScrollView>
       </View>
     );
   }
@@ -190,7 +196,11 @@ export default function WorkoutScreen({ route, navigation }) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <View style={styles.scroll}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
             <Text style={styles.backText}>← BACK</Text>
@@ -427,7 +437,7 @@ export default function WorkoutScreen({ route, navigation }) {
         </ComicPanel>
 
         <ExplosionEffect active={explodingId === currentCard?.id} color={schedule.color || '#FFD700'} />
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -436,10 +446,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#090909',
+    ...Platform.select({ web: { minHeight: '100vh' } }),
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: '#090909',
   },
   scroll: {
+    flexGrow: 1,
     padding: 16,
-    paddingBottom: 32,
+    paddingBottom: 56,
+    backgroundColor: '#090909',
+    ...Platform.select({ web: { minHeight: '100%' } }),
   },
   header: {
     flexDirection: 'row',

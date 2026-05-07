@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   StatusBar,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { login } from '../utils/auth';
 
@@ -62,7 +63,7 @@ export default function LoginScreen({ onLoggedIn }) {
 
         <View style={styles.hintBox}>
           <Text style={styles.hintLabel}>SEEDED ACCOUNT</Text>
-          <Text style={styles.hintText}>please contact admin</Text>
+          <Text style={styles.hintText}>Please Contact Admin</Text>
         </View>
       </View>
     </View>
@@ -74,7 +75,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#050816',
     justifyContent: 'center',
-    padding: 20,
+    alignItems: 'center',
+    padding: 24,
+    ...Platform.select({ web: { minHeight: '100vh' } }),
   },
   card: {
     backgroundColor: '#0F172A',

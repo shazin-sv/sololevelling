@@ -55,7 +55,11 @@ export default function ExerciseDetailScreen({ route, navigation }) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+      >
         {/* HEADER */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
@@ -205,10 +209,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1A1A1A',
+    ...Platform.select({ web: { minHeight: '100vh' } }),
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: '#1A1A1A',
   },
   scroll: {
+    flexGrow: 1,
     padding: 16,
-    paddingBottom: 32,
+    paddingBottom: 56,
+    backgroundColor: '#1A1A1A',
+    ...Platform.select({ web: { minHeight: '100%' } }),
   },
   header: {
     flexDirection: 'row',

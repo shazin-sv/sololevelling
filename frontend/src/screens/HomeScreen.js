@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
+  Platform,
 } from 'react-native';
 import { useApp } from '../context/AppContext';
 import ComicPanel, { SpeechBubble } from '../components/ComicPanel';
@@ -48,6 +49,7 @@ export default function HomeScreen({ navigation }) {
   });
 
   const [showWeekly, setShowWeekly] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -58,7 +60,11 @@ export default function HomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+      >
         {/* HEADER */}
         <View style={styles.header}>
           <View>
@@ -68,12 +74,6 @@ export default function HomeScreen({ navigation }) {
             {user?.username ? <Text style={styles.userLabel}>@{user.username}</Text> : null}
           </View>
           <View style={styles.headerRight}>
-            <TouchableOpacity onPress={() => navigation.navigate('Badges')} style={styles.badgeBtn}>
-              <Text style={styles.badgeBtnText}>🏅 BADGES</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={refreshFromServer} style={styles.syncBtn}>
-              <Text style={styles.syncBtnText}>↻ SYNC</Text>
-            </TouchableOpacity>
             <TouchableOpacity
               onPress={saveProgress}
               disabled={saveStatus === 'saving'}
@@ -91,14 +91,29 @@ export default function HomeScreen({ navigation }) {
                 {saveStatus === 'saving' ? 'SAVING...' : saveStatus === 'saved' ? 'SAVED ✓' : saveStatus === 'error' ? 'FAIL ✗' : '💾 SAVE'}
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
-              <Text style={styles.logoutBtnText}>LOG OUT</Text>
+            <TouchableOpacity onPress={() => setMenuVisible(v => !v)} style={styles.menuBtn}>
+              <Text style={styles.menuBtnText}>☰ MENU</Text>
             </TouchableOpacity>
-            <View style={styles.levelBadge}>
+          </View>
+        </View>
+
+        {/* MENU DROPDOWN */}
+        {menuVisible && (
+          <View style={styles.menuPanel}>
+            <TouchableOpacity onPress={() => { setMenuVisible(false); navigation.navigate('Badges'); }} style={styles.menuItem}>
+              <Text style={styles.menuItemText}>🏅 BADGES</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => { setMenuVisible(false); refreshFromServer(); }} style={styles.menuItem}>
+              <Text style={styles.menuItemText}>↻ SYNC</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => { setMenuVisible(false); handleLogout(); }} style={styles.menuItem}>
+              <Text style={styles.menuItemText}>🚪 LOG OUT</Text>
+            </TouchableOpacity>
+            <View style={[styles.levelBadge, styles.menuLevelBadge]}>
               <Text style={styles.levelText}>{level.name}</Text>
             </View>
           </View>
-        </View>
+        )}
 
         {/* MOTIVATIONAL SPEECH BUBBLE */}
         <SpeechBubble style={styles.speechBubble}>{message}</SpeechBubble>
@@ -267,10 +282,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1A1A1A',
+    ...Platform.select({ web: { minHeight: '100vh' } }),
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: '#1A1A1A',
   },
   scroll: {
+    flexGrow: 1,
     padding: 16,
-    paddingBottom: 32,
+    paddingBottom: 56,
+    backgroundColor: '#1A1A1A',
+    ...Platform.select({ web: { minHeight: '100%' } }),
   },
   header: {
     flexDirection: 'row',
@@ -597,5 +620,49 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     fontSize: 10,
     letterSpacing: 1,
+  },
+  menuBtn: {
+    borderWidth: 2,
+    borderColor: '#FFD700',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    backgroundColor: '#000000',
+  },
+  menuBtnText: {
+    color: '#FFD700',
+    fontWeight: '900',
+    fontSize: 10,
+    letterSpacing: 1,
+  },
+  menuPanel: {
+    backgroundColor: '#111111',
+    borderWidth: 2,
+    borderColor: '#333333',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 12,
+    gap: 8,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+  },
+  menuItem: {
+    borderWidth: 2,
+    borderColor: '#555555',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 4,
+    backgroundColor: '#020617',
+  },
+  menuItemText: {
+    color: '#FFFFFF',
+    fontWeight: '900',
+    fontSize: 10,
+    letterSpacing: 1,
+  },
+  menuLevelBadge: {
+    transform: [{ rotate: '2deg' }],
   },
 });

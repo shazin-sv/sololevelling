@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
+  Platform,
 } from 'react-native';
 import { useApp } from '../context/AppContext';
 import ComicPanel, { SoundEffect } from '../components/ComicPanel';
@@ -16,7 +17,11 @@ export default function BadgesScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
             <Text style={styles.backText}>← BACK</Text>
@@ -98,10 +103,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1A1A1A',
+    ...Platform.select({ web: { minHeight: '100vh' } }),
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: '#1A1A1A',
   },
   scroll: {
+    flexGrow: 1,
     padding: 16,
-    paddingBottom: 32,
+    paddingBottom: 56,
+    backgroundColor: '#1A1A1A',
+    ...Platform.select({ web: { minHeight: '100%' } }),
   },
   header: {
     flexDirection: 'row',
