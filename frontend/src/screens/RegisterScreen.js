@@ -9,22 +9,31 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
-import { login } from '../utils/auth';
+import { register } from '../utils/auth';
 
-export default function LoginScreen({ onLoggedIn, onSwitchToRegister }) {
+export default function RegisterScreen({ onRegistered }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleLogin = async () => {
+  const handleRegister = async () => {
     try {
       setLoading(true);
       setError('');
-      const session = await login(username.trim(), password);
-      onLoggedIn?.(session);
+
+      if (!username.trim() || !password) {
+        throw new Error('Username and password are required');
+      }
+      if (password !== confirmPassword) {
+        throw new Error('Passwords do not match');
+      }
+
+      const session = await register(username.trim(), password);
+      onRegistered?.(session);
     } catch (err) {
-      setError(err.message || 'Login failed');
+      setError(err.message || 'Registration failed');
     } finally {
       setLoading(false);
     }
@@ -35,8 +44,8 @@ export default function LoginScreen({ onLoggedIn, onSwitchToRegister }) {
       <StatusBar barStyle="light-content" />
       <View style={styles.card}>
         <Text style={styles.kicker}>SOLO LEVELING GYM SYSTEM</Text>
-        <Text style={styles.title}>SIGN IN</Text>
-        <Text style={styles.subtitle}>Your account now saves progress to Neon.</Text>
+        <Text style={styles.title}>CREATE ACCOUNT</Text>
+        <Text style={styles.subtitle}>Join the ranks. Your legend starts now.</Text>
 
         <TextInput
           value={username}
@@ -54,21 +63,20 @@ export default function LoginScreen({ onLoggedIn, onSwitchToRegister }) {
           secureTextEntry
           style={styles.input}
         />
+        <TextInput
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          placeholder="Confirm Password"
+          placeholderTextColor="#6B7280"
+          secureTextEntry
+          style={styles.input}
+        />
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        <TouchableOpacity onPress={handleLogin} disabled={loading} style={styles.button}>
-          {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>ENTER SYSTEM</Text>}
+        <TouchableOpacity onPress={handleRegister} disabled={loading} style={styles.button}>
+          {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>CREATE ACCOUNT</Text>}
         </TouchableOpacity>
-
-        <TouchableOpacity onPress={onSwitchToRegister} disabled={loading} style={styles.secondaryButton}>
-          <Text style={styles.secondaryButtonText}>CREATE ACCOUNT</Text>
-        </TouchableOpacity>
-
-        <View style={styles.hintBox}>
-          <Text style={styles.hintLabel}>SEEDED ACCOUNT</Text>
-          <Text style={styles.hintText}>Please Contact Admin</Text>
-        </View>
       </View>
     </View>
   );
@@ -89,6 +97,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#1D4ED8',
     padding: 22,
+    width: '100%',
+    maxWidth: 400,
   },
   kicker: {
     color: '#60A5FA',
@@ -133,45 +143,9 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: 1,
   },
-  secondaryButton: {
-    backgroundColor: 'transparent',
-    borderRadius: 14,
-    paddingVertical: 15,
-    alignItems: 'center',
-    marginTop: 10,
-    borderWidth: 2,
-    borderColor: '#1D4ED8',
-  },
-  secondaryButtonText: {
-    color: '#60A5FA',
-    fontSize: 15,
-    fontWeight: '900',
-    letterSpacing: 1,
-  },
   error: {
     color: '#F87171',
     marginBottom: 8,
     fontWeight: '700',
-  },
-  hintBox: {
-    marginTop: 18,
-    borderRadius: 16,
-    backgroundColor: '#020617',
-    borderWidth: 1,
-    borderColor: '#1E293B',
-    padding: 14,
-  },
-  hintLabel: {
-    color: '#93C5FD',
-    fontSize: 11,
-    fontWeight: '900',
-    letterSpacing: 1.5,
-    marginBottom: 8,
-  },
-  hintText: {
-    color: '#E2E8F0',
-    fontSize: 13,
-    fontWeight: '700',
-    marginBottom: 4,
   },
 });

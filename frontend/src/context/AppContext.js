@@ -134,7 +134,7 @@ function reducer(state, action) {
   }
 }
 
-export function AppProvider({ children, session = null, setSession = null }) {
+export function AppProvider({ children, session = null, setSession = null, customPlan = null }) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
@@ -323,8 +323,9 @@ export function AppProvider({ children, session = null, setSession = null }) {
     }
   }, []);
 
-  const todayWorkout = WORKOUT_SCHEDULE[state.today] || WORKOUT_SCHEDULE.Monday;
-  const todayExercises = todayWorkout.exercises.map((ex, i) => {
+  const activeSchedule = customPlan || WORKOUT_SCHEDULE;
+  const todayWorkout = activeSchedule[state.today] || activeSchedule.Monday || WORKOUT_SCHEDULE.Monday;
+  const todayExercises = (todayWorkout.exercises || []).map((ex, i) => {
     const key = `${state.today}_${i}`;
     return state.replacements[key] || ex;
   });
@@ -358,7 +359,7 @@ export function AppProvider({ children, session = null, setSession = null }) {
     toggleNotifications,
     saveProgress,
     refreshFromServer,
-    WORKOUT_SCHEDULE,
+    WORKOUT_SCHEDULE: activeSchedule,
     WEEK_DAYS,
     BADGES,
     LEVELS,

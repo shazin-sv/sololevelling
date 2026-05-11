@@ -9,7 +9,10 @@ import ExerciseDetailScreen from './src/screens/ExerciseDetailScreen';
 import BadgesScreen from './src/screens/BadgesScreen';
 import WebViewScreen from './src/screens/WebViewScreen';
 import LoginScreen from './src/screens/LoginScreen';
-import { getProfile } from './src/utils/auth';
+import RegisterScreen from './src/screens/RegisterScreen';
+import IntroScreen from './src/screens/IntroScreen';
+import SetupWorkoutScreen from './src/screens/SetupWorkoutScreen';
+import { getProfile, getWorkoutPlan } from './src/utils/auth';
 import { hydrateProgress } from './src/utils/storage';
 
 const Stack = createNativeStackNavigator();
@@ -36,6 +39,10 @@ function AppNavigator() {
 export default function App() {
   const [booting, setBooting] = useState(true);
   const [session, setSession] = useState(null);
+  const [authScreen, setAuthScreen] = useState('login');
+  const [showIntro, setShowIntro] = useState(false);
+  const [showSetup, setShowSetup] = useState(false);
+  const [customPlan, setCustomPlan] = useState(null);
 
   useEffect(() => {
     async function bootstrap() {
@@ -43,6 +50,8 @@ export default function App() {
         const profile = await getProfile();
         if (profile?.progress) {
           await hydrateProgress(profile.progress);
+          const plan = await getWorkoutPlan();
+          setCustomPlan(plan);
           setSession(profile);
         }
       } catch {
@@ -64,20 +73,59 @@ export default function App() {
   }
 
   if (!session) {
+    if (authScreen === 'register') {
+      return (
+        <RegisterScreen
+          onRegistered={async (nextSession) => {
+            if (nextSession?.progress) {
+              await hydrateProgress(nextSession.progress);
+            }
+            setSession(nextSession);
+            setShowIntro(true);
+          }}
+        />
+      );
+    }
+
     return (
       <LoginScreen
         onLoggedIn={async (nextSession) => {
           if (nextSession?.progress) {
             await hydrateProgress(nextSession.progress);
           }
+          const plan = await getWorkoutPlan();
+          setCustomPlan(plan);
           setSession(nextSession);
+        }}
+        onSwitchToRegister={() => setAuthScreen('register')}
+      />
+    );
+  }
+
+  if (showIntro) {
+    return (
+      <IntroScreen
+        onContinue={() => {
+          setShowIntro(false);
+          setShowSetup(true);
+        }}
+      />
+    );
+  }
+
+  if (showSetup) {
+    return (
+      <SetupWorkoutScreen
+        onComplete={(plan) => {
+          setCustomPlan(plan);
+          setShowSetup(false);
         }}
       />
     );
   }
 
   return (
-    <AppProvider session={session} setSession={setSession}>
+    <AppProvider session={session} setSession={setSession} customPlan={customPlan}>
       <AppNavigator />
     </AppProvider>
   );

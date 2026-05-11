@@ -157,3 +157,40 @@ export async function saveRemoteProgress(progress) {
   };
   await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(merged));
 }
+
+export async function register(username, password) {
+  const result = await request('/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({ username, password }),
+  });
+  await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(result));
+  return result;
+}
+
+export async function getWorkoutPlan() {
+  const session = await getStoredSession();
+  if (!session?.token) return null;
+
+  const result = await request('/workout-plan', {
+    headers: {
+      Authorization: `Bearer ${session.token}`,
+    },
+  });
+  return result.plan;
+}
+
+export async function saveWorkoutPlan(plan) {
+  const session = await getStoredSession();
+  if (!session?.token) {
+    throw new Error('Not authenticated. Cannot save workout plan.');
+  }
+
+  const result = await request('/workout-plan', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${session.token}`,
+    },
+    body: JSON.stringify({ plan }),
+  });
+  return result;
+}

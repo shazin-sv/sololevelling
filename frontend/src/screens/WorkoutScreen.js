@@ -12,7 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { useApp } from '../context/AppContext';
-import { ALTERNATE_EXERCISES, WORKOUT_SCHEDULE, getExerciseVisual } from '../data/workouts';
+import { ALTERNATE_EXERCISES, getExerciseVisual } from '../data/workouts';
 import ComicPanel, { SoundEffect } from '../components/ComicPanel';
 import ExplosionEffect from '../components/ExplosionEffect';
 
@@ -43,6 +43,7 @@ export default function WorkoutScreen({ route, navigation }) {
     resetDay,
     saveProgress,
     saveStatus,
+    WORKOUT_SCHEDULE,
   } = useApp();
 
   const isToday = day === today;
