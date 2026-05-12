@@ -14,6 +14,7 @@ import IntroScreen from './src/screens/IntroScreen';
 import SetupWorkoutScreen from './src/screens/SetupWorkoutScreen';
 import { getProfile, getWorkoutPlan } from './src/utils/auth';
 import { hydrateProgress } from './src/utils/storage';
+import { COLORS } from './src/theme/neoBrutalism';
 
 const Stack = createNativeStackNavigator();
 
@@ -67,7 +68,7 @@ export default function App() {
   if (booting) {
     return (
       <View style={styles.loadingScreen}>
-        <ActivityIndicator color="#60A5FA" size="large" />
+        <ActivityIndicator color={COLORS.accent} size="large" />
       </View>
     );
   }
@@ -134,7 +135,7 @@ export default function App() {
 const styles = StyleSheet.create({
   loadingScreen: {
     flex: 1,
-    backgroundColor: '#050816',
+    backgroundColor: COLORS.background,
     justifyContent: 'center',
     alignItems: 'center',
   },

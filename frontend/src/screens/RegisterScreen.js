@@ -10,6 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { register } from '../utils/auth';
+import { COLORS, TYPOGRAPHY, SHADOWS, BORDERS, SPACING } from '../theme/neoBrutalism';
 
 export default function RegisterScreen({ onRegistered }) {
   const [username, setUsername] = useState('');
@@ -41,7 +42,7 @@ export default function RegisterScreen({ onRegistered }) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
       <View style={styles.card}>
         <Text style={styles.kicker}>SOLO LEVELING GYM SYSTEM</Text>
         <Text style={styles.title}>CREATE ACCOUNT</Text>
@@ -85,67 +86,76 @@ export default function RegisterScreen({ onRegistered }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#050816',
+    backgroundColor: COLORS.background,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
+    padding: SPACING.lg,
     ...Platform.select({ web: { minHeight: '100vh' } }),
   },
   card: {
-    backgroundColor: '#0F172A',
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: '#1D4ED8',
-    padding: 22,
     width: '100%',
     maxWidth: 400,
+    backgroundColor: COLORS.surface,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    padding: SPACING.lg,
+    ...SHADOWS.large,
   },
   kicker: {
-    color: '#60A5FA',
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 2,
-    marginBottom: 10,
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.tiny,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    letterSpacing: 3,
+    textTransform: 'uppercase',
+    marginBottom: SPACING.sm,
   },
   title: {
-    color: '#FFFFFF',
-    fontSize: 28,
-    fontWeight: '900',
-    marginBottom: 8,
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.heading2,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    marginBottom: SPACING.sm,
+    textTransform: 'uppercase',
+    letterSpacing: -1,
   },
   subtitle: {
-    color: '#94A3B8',
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 18,
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.bodySmall,
+    marginBottom: SPACING.lg,
+    lineHeight: TYPOGRAPHY.bodySmall,
+    fontWeight: TYPOGRAPHY.weightBold,
   },
   input: {
-    backgroundColor: '#020617',
-    color: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#1E293B',
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    marginBottom: 12,
-    fontSize: 15,
+    backgroundColor: COLORS.background,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.lg,
+    fontSize: TYPOGRAPHY.body,
+    marginBottom: SPACING.md,
+    color: COLORS.foreground,
+    fontWeight: TYPOGRAPHY.weightBold,
   },
   button: {
-    backgroundColor: '#16A34A',
-    borderRadius: 14,
-    paddingVertical: 15,
+    backgroundColor: COLORS.accent,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    paddingVertical: SPACING.lg,
     alignItems: 'center',
-    marginTop: 6,
+    marginTop: SPACING.sm,
+    ...SHADOWS.medium,
   },
   buttonText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '900',
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.label,
+    fontWeight: TYPOGRAPHY.weightBlack,
     letterSpacing: 1,
+    textTransform: 'uppercase',
   },
   error: {
-    color: '#F87171',
-    marginBottom: 8,
-    fontWeight: '700',
+    color: COLORS.error,
+    marginTop: SPACING.md,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    textAlign: 'center',
+    fontSize: TYPOGRAPHY.bodySmall,
   },
 });

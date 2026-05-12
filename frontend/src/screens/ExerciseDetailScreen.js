@@ -14,6 +14,7 @@ import { WebView } from 'react-native-webview';
 import ComicPanel, { SoundEffect } from '../components/ComicPanel';
 import RestTimer from '../components/RestTimer';
 import ExplosionEffect from '../components/ExplosionEffect';
+import { COLORS, TYPOGRAPHY, SHADOWS, BORDERS, SPACING } from '../theme/neoBrutalism';
 
 export default function ExerciseDetailScreen({ route, navigation }) {
   const { exercise, color, isToday, isCompleted, decision, onComplete } = route.params || {};
@@ -54,152 +55,113 @@ export default function ExerciseDetailScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* HEADER */}
-        <View style={styles.header}>
+      <StatusBar barStyle="dark-content" />
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        {/* TOP NAV */}
+        <View style={styles.topNav}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Text style={styles.backText}>← BACK</Text>
+            <Text style={styles.backIcon}>←</Text>
+            <Text style={styles.backText}>EXERCISE_DB</Text>
           </TouchableOpacity>
-          <SoundEffect text="POW!" color={color || '#E23636'} />
+          <View style={styles.difficulty}>
+            <Text style={styles.diffLabel}>Difficulty</Text>
+            <View style={styles.starsRow}>
+              <Text style={styles.starFilled}>★</Text>
+              <Text style={styles.starFilled}>★</Text>
+              <Text style={styles.starFilled}>★</Text>
+              <Text style={styles.starEmpty}>★</Text>
+              <Text style={styles.starEmpty}>★</Text>
+            </View>
+          </View>
         </View>
 
-        {/* TITLE */}
-        <ComicPanel
-          color="#2C2C2C"
-          borderColor={color || '#E23636'}
-          title="EXERCISE"
-          titleColor={color || '#E23636'}
-        >
-          <Text style={[styles.exerciseName, { color: color || '#FFFFFF' }]}>
-            {exercise.name.toUpperCase()}
-          </Text>
-          <Text style={styles.exerciseSets}>{exercise.sets}</Text>
-          <Text style={styles.exerciseDescription}>{exercise.description}</Text>
-        </ComicPanel>
+        {/* MAIN TITLE */}
+        <View style={styles.titleSection}>
+          <Text style={styles.exerciseName}>{exercise.name.toUpperCase()}</Text>
+          <Text style={styles.systemClass}>System.Class: [ COMPOUND_POWER ]</Text>
+        </View>
 
-        {/* YOUTUBE VIDEO */}
-        <ComicPanel
-          color="#000000"
-          borderColor={color || '#E23636'}
-          title="TUTORIAL"
-          titleColor={color || '#E23636'}
-          style={{ marginTop: 12 }}
-        >
-          <View style={styles.videoContainer}>
+        {/* VIDEO / TUTORIAL */}
+        <View style={styles.videoPanel}>
+          <View style={styles.videoInner}>
             {Platform.OS === 'web' ? (
               <View style={styles.webFallback}>
-                <Text style={styles.webFallbackTitle}>VIDEO OPENS IN A NEW TAB ON WEB</Text>
-                <Text style={styles.webFallbackText}>
-                  Expo WebView support on web is flaky here, so we avoid the broken embed and open the
-                  YouTube tutorial directly instead.
-                </Text>
-                <TouchableOpacity
-                  onPress={() => Linking.openURL(youtubeUrl)}
-                  style={styles.webOpenBtn}
-                >
-                  <Text style={styles.webOpenBtnText}>OPEN YOUTUBE SEARCH</Text>
+                <Text style={styles.webFallbackTitle}>TUTORIAL_V3.2</Text>
+                <Text style={styles.webFallbackText}>Web playback opens externally.</Text>
+                <TouchableOpacity onPress={() => Linking.openURL(youtubeUrl)} style={styles.playBtn}>
+                  <Text style={styles.playBtnText}>▶ OPEN VIDEO</Text>
                 </TouchableOpacity>
               </View>
             ) : (
-              <WebView
-                originWhitelist={['*']}
-                source={{ uri: youtubeUrl }}
-                style={styles.webview}
-                javaScriptEnabled
-                domStorageEnabled
-                startInLoadingState
-                renderLoading={() => (
-                  <View style={styles.loading}>
-                    <Text style={styles.loadingText}>LOADING...</Text>
-                  </View>
-                )}
-              />
+              <>
+                <WebView originWhitelist={['*']} source={{ uri: youtubeUrl }} style={styles.webview} javaScriptEnabled domStorageEnabled startInLoadingState renderLoading={() => (
+                  <View style={styles.loading}><Text style={styles.loadingText}>LOADING...</Text></View>
+                )} />
+                <TouchableOpacity onPress={() => navigation.navigate('WebView', { uri: youtubeUrl })} style={styles.playOverlay}>
+                  <View style={styles.playCircle}><Text style={styles.playIcon}>▶</Text></View>
+                </TouchableOpacity>
+              </>
             )}
           </View>
-          <TouchableOpacity
-            onPress={() => {
-              if (Platform.OS === 'web') {
-                Linking.openURL(youtubeUrl);
-                return;
-              }
-              navigation.navigate('WebView', { uri: youtubeUrl });
-            }}
-            style={styles.openExternalBtn}
-          >
-            <Text style={styles.openExternalText}>OPEN IN BROWSER →</Text>
-          </TouchableOpacity>
-        </ComicPanel>
+          <View style={styles.videoLabel}><Text style={styles.videoLabelText}>Tutorial_v3.2</Text></View>
+        </View>
 
-        {/* TARGET MUSCLES */}
-        <ComicPanel
-          color="#2C2C2C"
-          borderColor="#FFD700"
-          title="TARGET MUSCLES"
-          titleColor="#FFD700"
-          style={{ marginTop: 12 }}
-        >
-          <Text style={styles.muscleText}>{exercise.targetMuscles}</Text>
-        </ComicPanel>
+        {/* SPECS BENTO GRID */}
+        <View style={styles.bentoRow}>
+          <View style={[styles.bentoCard, styles.bentoWide]}>
+            <Text style={styles.bentoLabel}>[ TARGET_MUSCLES ]</Text>
+            <View style={styles.tagRow}>
+              {exercise.targetMuscles.split(',').map((muscle, i) => (
+                <View key={i} style={styles.tag}><Text style={styles.tagText}>{muscle.trim().toUpperCase()}</Text></View>
+              ))}
+            </View>
+          </View>
+          <View style={styles.bentoCard}>
+            <Text style={styles.bentoLabel}>TECH_SPECS</Text>
+            <Text style={styles.bentoValue}>{exercise.sets}</Text>
+            <Text style={styles.bentoSublabel}>SETS / REPS</Text>
+          </View>
+        </View>
+
+        {/* DESCRIPTION */}
+        <View style={styles.descPanel}>
+          <Text style={styles.descLabel}>SYSTEM_DESCRIPTION</Text>
+          <Text style={styles.descBody}>{exercise.description}</Text>
+        </View>
 
         {/* STEPS */}
-        <ComicPanel
-          color="#FFFEF0"
-          borderColor="#000000"
-          title="HOW TO PERFORM"
-          titleColor="#000000"
-          style={{ marginTop: 12 }}
-        >
+        <View style={styles.stepsPanel}>
+          <Text style={styles.stepsLabel}>EXECUTION_PROTOCOL</Text>
           {steps.map((step, i) => (
             <View key={i} style={styles.stepRow}>
-              <View style={styles.stepNumber}>
-                <Text style={styles.stepNumberText}>{i + 1}</Text>
-              </View>
+              <Text style={styles.stepNum}>{String(i + 1).padStart(2, '0')}</Text>
               <Text style={styles.stepText}>{step}</Text>
             </View>
           ))}
-        </ComicPanel>
+        </View>
 
         {/* REST TIMER */}
-        <ComicPanel
-          color="#2C2C2C"
-          borderColor="#1E90FF"
-          title="REST TIMER"
-          titleColor="#1E90FF"
-          style={{ marginTop: 12 }}
-        >
-          <RestTimer color="#1E90FF" />
-        </ComicPanel>
+        <View style={styles.timerPanel}>
+          <Text style={styles.timerLabel}>[ REST TIMER ]</Text>
+          <RestTimer color={COLORS.secondary} />
+        </View>
 
-        {/* COMPLETE BUTTON */}
+        {/* ACTION BUTTON */}
         {isToday && !isRejected && (
-          <Animated.View style={{ transform: [{ scale: scaleAnim }], marginTop: 16 }}>
-            <TouchableOpacity
-              onPress={handleComplete}
-              disabled={completed}
-              style={[
-                styles.completeBtn,
-                { backgroundColor: completed ? '#32CD32' : color || '#E23636' },
-              ]}
-            >
-              <Text style={styles.completeBtnText}>
-                {completed ? 'COMPLETED! +50 XP' : 'MARK AS COMPLETED'}
-              </Text>
+          <Animated.View style={{ transform: [{ scale: scaleAnim }], marginTop: 20 }}>
+            <TouchableOpacity onPress={handleComplete} disabled={completed} style={[styles.actionBtn, { backgroundColor: completed ? COLORS.secondaryContainer : COLORS.onTertiaryContainer }]}>
+              <Text style={styles.actionBtnText}>{completed ? 'SESSION CONQUERED ✓' : 'INITIATE SESSION'}</Text>
             </TouchableOpacity>
           </Animated.View>
         )}
 
         {isRejected && (
-          <View style={[styles.completeBtn, { marginTop: 16, backgroundColor: '#991B1B' }]}>
-            <Text style={styles.completeBtnText}>SKIPPED ON CARD DECK · -50 XP</Text>
+          <View style={[styles.actionBtn, { marginTop: 20, backgroundColor: COLORS.errorContainer }]}>
+            <Text style={styles.actionBtnText}>QUEST ABANDONED · -50 XP</Text>
           </View>
         )}
 
-        <ExplosionEffect active={showExplosion} color={color || '#FFD700'} />
+        <ExplosionEffect active={showExplosion} color={COLORS.onTertiaryContainer} />
       </ScrollView>
     </View>
   );
@@ -208,66 +170,102 @@ export default function ExerciseDetailScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: COLORS.background,
     ...Platform.select({ web: { minHeight: '100vh' } }),
   },
   scrollView: {
     flex: 1,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: COLORS.background,
   },
   scroll: {
     flexGrow: 1,
-    padding: 16,
+    padding: SPACING.lg,
     paddingBottom: 56,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: COLORS.background,
     ...Platform.select({ web: { minHeight: '100%' } }),
   },
-  header: {
+  topNav: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: SPACING.lg,
+    borderBottomWidth: BORDERS.default,
+    borderBottomColor: COLORS.border,
+    paddingBottom: SPACING.sm,
+    marginHorizontal: -SPACING.lg,
+    paddingHorizontal: SPACING.lg,
+    marginTop: -SPACING.lg,
+    paddingTop: SPACING.sm,
   },
   backBtn: {
-    borderWidth: 2,
-    borderColor: '#555555',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  backIcon: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.bodyLarge,
+    fontWeight: TYPOGRAPHY.weightBlack,
   },
   backText: {
-    color: '#FFFFFF',
-    fontWeight: '900',
-    fontSize: 12,
-    letterSpacing: 1,
+    color: COLORS.foreground,
+    fontWeight: TYPOGRAPHY.weightBold,
+    fontSize: TYPOGRAPHY.small,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+  },
+  difficulty: {
+    alignItems: 'flex-end',
+  },
+  diffLabel: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.tiny,
+    fontWeight: TYPOGRAPHY.weightBold,
+    textTransform: 'uppercase',
+    marginBottom: SPACING.sm,
+  },
+  starsRow: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+  },
+  starFilled: {
+    color: COLORS.accent,
+    fontSize: TYPOGRAPHY.label,
+  },
+  starEmpty: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.label,
+  },
+  titleSection: {
+    marginBottom: SPACING.lg,
   },
   exerciseName: {
-    fontSize: 20,
-    fontWeight: '900',
-    letterSpacing: 1,
-    marginBottom: 4,
-    textShadowColor: '#000',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 0,
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.heading3,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    letterSpacing: -1,
+    lineHeight: TYPOGRAPHY.heading3,
+    marginBottom: SPACING.sm,
+    textTransform: 'uppercase',
   },
-  exerciseSets: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#FFD700',
-    marginBottom: 8,
+  systemClass: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.small,
+    fontWeight: TYPOGRAPHY.weightBold,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
   },
-  exerciseDescription: {
-    fontSize: 13,
-    color: '#CCCCCC',
-    fontWeight: '700',
-    lineHeight: 20,
-  },
-  videoContainer: {
-    height: 220,
-    backgroundColor: '#000000',
-    borderWidth: 2,
-    borderColor: '#333333',
+  videoPanel: {
+    marginBottom: SPACING.lg,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
     overflow: 'hidden',
+    position: 'relative',
+    ...SHADOWS.large,
+  },
+  videoInner: {
+    height: 200,
+    backgroundColor: COLORS.surface,
   },
   webview: {
     flex: 1,
@@ -276,115 +274,226 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 18,
-    gap: 10,
+    padding: SPACING.lg,
+    gap: SPACING.sm,
   },
   webFallbackTitle: {
-    color: '#FFFFFF',
-    fontWeight: '900',
-    fontSize: 14,
+    color: COLORS.foreground,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    fontSize: TYPOGRAPHY.label,
     letterSpacing: 1,
-    textAlign: 'center',
   },
   webFallbackText: {
-    color: '#CCCCCC',
-    fontWeight: '700',
-    fontSize: 12,
-    lineHeight: 18,
+    color: COLORS.foreground,
+    fontWeight: TYPOGRAPHY.weightBold,
+    fontSize: TYPOGRAPHY.small,
+    lineHeight: TYPOGRAPHY.small,
     textAlign: 'center',
   },
-  webOpenBtn: {
-    marginTop: 6,
-    borderWidth: 2,
-    borderColor: '#1E90FF',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 4,
+  playBtn: {
+    marginTop: SPACING.sm,
+    backgroundColor: COLORS.accent,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    ...SHADOWS.small,
   },
-  webOpenBtnText: {
-    color: '#1E90FF',
-    fontWeight: '900',
-    fontSize: 12,
+  playBtnText: {
+    color: COLORS.foreground,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    fontSize: TYPOGRAPHY.small,
     letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  playOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  playCircle: {
+    width: 64,
+    height: 64,
+    backgroundColor: COLORS.accent,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    ...SHADOWS.medium,
+  },
+  playIcon: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.heading5,
+    marginLeft: SPACING.sm,
+  },
+  videoLabel: {
+    position: 'absolute',
+    top: SPACING.sm,
+    left: SPACING.sm,
+    backgroundColor: COLORS.surface,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.sm,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    ...SHADOWS.small,
+  },
+  videoLabelText: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.tiny,
+    fontWeight: TYPOGRAPHY.weightBold,
+    textTransform: 'uppercase',
   },
   loading: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    top: 0, left: 0, right: 0, bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#000000',
+    backgroundColor: COLORS.background,
   },
   loadingText: {
-    color: '#FFFFFF',
-    fontWeight: '900',
+    color: COLORS.foreground,
+    fontWeight: TYPOGRAPHY.weightBlack,
     letterSpacing: 2,
   },
-  openExternalBtn: {
-    marginTop: 8,
-    alignSelf: 'flex-end',
+  bentoRow: {
+    flexDirection: 'row',
+    gap: SPACING.md,
+    marginBottom: SPACING.lg,
   },
-  openExternalText: {
-    color: '#1E90FF',
-    fontWeight: '900',
-    fontSize: 11,
+  bentoCard: {
+    flex: 1,
+    backgroundColor: COLORS.surface,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    padding: SPACING.lg,
+    ...SHADOWS.medium,
+  },
+  bentoWide: {
+    flex: 2,
+  },
+  bentoLabel: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.small,
+    fontWeight: TYPOGRAPHY.weightBold,
+    marginBottom: SPACING.sm,
+    textTransform: 'uppercase',
+  },
+  bentoValue: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.heading5,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    marginBottom: SPACING.sm,
+  },
+  bentoSublabel: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.tiny,
+    fontWeight: TYPOGRAPHY.weightBold,
+    textTransform: 'uppercase',
+  },
+  tagRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
+  },
+  tag: {
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.sm,
+    backgroundColor: COLORS.background,
+  },
+  tagText: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.tiny,
+    fontWeight: TYPOGRAPHY.weightBold,
     letterSpacing: 1,
+    textTransform: 'uppercase',
   },
-  muscleText: {
-    color: '#FFFFFF',
-    fontWeight: '800',
-    fontSize: 14,
-    letterSpacing: 0.5,
+  descPanel: {
+    backgroundColor: COLORS.surface,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    padding: SPACING.lg,
+    marginBottom: SPACING.lg,
+    ...SHADOWS.medium,
+  },
+  descLabel: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.small,
+    fontWeight: TYPOGRAPHY.weightBold,
+    marginBottom: SPACING.sm,
+    textTransform: 'uppercase',
+  },
+  descBody: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.bodySmall,
+    lineHeight: TYPOGRAPHY.bodySmall,
+    fontWeight: TYPOGRAPHY.weightBold,
+  },
+  stepsPanel: {
+    backgroundColor: COLORS.surface,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    padding: SPACING.lg,
+    marginBottom: SPACING.lg,
+    ...SHADOWS.medium,
+  },
+  stepsLabel: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.small,
+    fontWeight: TYPOGRAPHY.weightBold,
+    marginBottom: SPACING.md,
+    textTransform: 'uppercase',
   },
   stepRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginVertical: 6,
+    marginVertical: SPACING.sm,
+    gap: SPACING.sm,
   },
-  stepNumber: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#000000',
-    borderWidth: 2,
-    borderColor: '#000000',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-    marginTop: 2,
-  },
-  stepNumberText: {
-    color: '#FFD700',
-    fontWeight: '900',
-    fontSize: 12,
+  stepNum: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.small,
+    fontWeight: TYPOGRAPHY.weightBold,
+    width: 22,
   },
   stepText: {
-    color: '#000000',
-    fontWeight: '700',
-    fontSize: 13,
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.bodySmall,
+    fontWeight: TYPOGRAPHY.weightBold,
     flex: 1,
-    lineHeight: 20,
+    lineHeight: TYPOGRAPHY.bodySmall,
   },
-  completeBtn: {
-    borderWidth: 4,
-    borderColor: '#000000',
-    paddingVertical: 16,
+  timerPanel: {
+    backgroundColor: COLORS.surface,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    padding: SPACING.lg,
+    marginBottom: SPACING.lg,
+    ...SHADOWS.medium,
+  },
+  timerLabel: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.small,
+    fontWeight: TYPOGRAPHY.weightBold,
+    marginBottom: SPACING.sm,
+    textTransform: 'uppercase',
+  },
+  actionBtn: {
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    paddingVertical: SPACING.lg,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 8,
+    marginBottom: SPACING.lg,
+    backgroundColor: COLORS.accent,
+    ...SHADOWS.large,
   },
-  completeBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '900',
-    fontSize: 16,
+  actionBtnText: {
+    color: COLORS.foreground,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    fontSize: TYPOGRAPHY.heading5,
     letterSpacing: 2,
-    textShadowColor: '#000',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 0,
+    textTransform: 'uppercase',
   },
 });

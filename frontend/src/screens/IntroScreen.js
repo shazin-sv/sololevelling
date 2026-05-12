@@ -8,6 +8,8 @@ import {
   ScrollView,
   Platform,
 } from 'react-native';
+import { useApp } from '../context/AppContext';
+import { COLORS, TYPOGRAPHY, SHADOWS, BORDERS, SPACING } from '../theme/neoBrutalism';
 
 export default function IntroScreen({ onContinue }) {
   const lines = [
@@ -23,8 +25,12 @@ export default function IntroScreen({ onContinue }) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scroll}>
+      <StatusBar barStyle="dark-content" />
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.badge}>
           <Text style={styles.badgeText}>SYSTEM INITIALIZED</Text>
         </View>
@@ -66,44 +72,45 @@ export default function IntroScreen({ onContinue }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#050816',
+    backgroundColor: COLORS.background,
     ...Platform.select({ web: { minHeight: '100vh' } }),
   },
   scrollView: {
     flex: 1,
-    backgroundColor: '#050816',
+    backgroundColor: COLORS.background,
   },
   scroll: {
     flexGrow: 1,
-    padding: 28,
+    padding: SPACING.lg,
     paddingBottom: 56,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: COLORS.background,
     ...Platform.select({ web: { minHeight: '100%' } }),
   },
   badge: {
-    borderWidth: 2,
-    borderColor: '#1D4ED8',
-    backgroundColor: '#0F172A',
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 8,
-    marginBottom: 28,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.secondary,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    alignSelf: 'flex-start',
+    marginBottom: SPACING.lg,
+    ...SHADOWS.medium,
   },
   badgeText: {
-    color: '#60A5FA',
-    fontWeight: '900',
-    fontSize: 11,
+    color: COLORS.foreground,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    fontSize: TYPOGRAPHY.tiny,
     letterSpacing: 2,
+    textTransform: 'uppercase',
   },
   line: {
-    fontWeight: '900',
-    textAlign: 'center',
-    marginBottom: 10,
-    letterSpacing: 1,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    marginBottom: SPACING.md,
+    textTransform: 'uppercase',
+    letterSpacing: -1,
   },
   heroLine: {
-    textShadowColor: '#FFD700',
+    textShadowColor: COLORS.onTertiaryContainer,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 20,
     marginVertical: 8,
@@ -111,12 +118,11 @@ const styles = StyleSheet.create({
   divider: {
     width: 60,
     height: 3,
-    backgroundColor: '#1D4ED8',
-    borderRadius: 2,
+    backgroundColor: COLORS.secondaryContainer,
     marginVertical: 24,
   },
   body: {
-    color: '#94A3B8',
+    color: COLORS.onSurfaceVariant,
     fontSize: 16,
     lineHeight: 26,
     textAlign: 'center',
@@ -124,21 +130,24 @@ const styles = StyleSheet.create({
     maxWidth: 500,
   },
   highlight: {
-    color: '#FFD700',
-    fontWeight: '900',
+    color: COLORS.foreground,
   },
   button: {
-    backgroundColor: '#16A34A',
-    borderRadius: 16,
-    paddingVertical: 18,
-    paddingHorizontal: 48,
+    backgroundColor: COLORS.accent,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    paddingVertical: SPACING.lg,
+    paddingHorizontal: SPACING.xl,
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: SPACING.lg,
+    alignSelf: 'center',
+    ...SHADOWS.large,
   },
   buttonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '900',
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.label,
+    fontWeight: TYPOGRAPHY.weightBlack,
     letterSpacing: 2,
+    textTransform: 'uppercase',
   },
 });

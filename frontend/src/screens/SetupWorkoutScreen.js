@@ -12,6 +12,7 @@ import {
 import * as XLSX from 'xlsx';
 import { saveWorkoutPlan } from '../utils/auth';
 import { WORKOUT_SCHEDULE } from '../data/workouts';
+import { COLORS, TYPOGRAPHY, SHADOWS, BORDERS, SPACING } from '../theme/neoBrutalism';
 
 const DAY_COLORS = {
   Monday: '#E23636',
@@ -192,8 +193,12 @@ export default function SetupWorkoutScreen({ onComplete }) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scroll}>
+      <StatusBar barStyle="dark-content" />
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.badge}>
           <Text style={styles.badgeText}>SETUP YOUR PLAN</Text>
         </View>
@@ -261,105 +266,116 @@ export default function SetupWorkoutScreen({ onComplete }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#050816',
+    backgroundColor: COLORS.background,
     ...Platform.select({ web: { minHeight: '100vh' } }),
   },
   scrollView: {
     flex: 1,
-    backgroundColor: '#050816',
+    backgroundColor: COLORS.background,
   },
   scroll: {
     flexGrow: 1,
-    padding: 28,
+    padding: SPACING.xl,
     paddingBottom: 56,
     alignItems: 'center',
     ...Platform.select({ web: { minHeight: '100%' } }),
   },
   badge: {
-    borderWidth: 2,
-    borderColor: '#1D4ED8',
-    backgroundColor: '#0F172A',
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 8,
-    marginBottom: 20,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.secondary,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    marginBottom: SPACING.lg,
+    ...SHADOWS.medium,
   },
   badgeText: {
-    color: '#60A5FA',
-    fontWeight: '900',
-    fontSize: 11,
+    color: COLORS.foreground,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    fontSize: TYPOGRAPHY.tiny,
     letterSpacing: 2,
+    textTransform: 'uppercase',
   },
   title: {
-    color: '#FFFFFF',
-    fontSize: 24,
-    fontWeight: '900',
-    marginBottom: 12,
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.heading5,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    marginBottom: SPACING.md,
     textAlign: 'center',
+    textTransform: 'uppercase',
   },
   body: {
-    color: '#94A3B8',
-    fontSize: 15,
-    lineHeight: 22,
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.bodySmall,
+    lineHeight: TYPOGRAPHY.bodySmall,
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: SPACING.lg,
     maxWidth: 460,
+    fontWeight: TYPOGRAPHY.weightBold,
   },
   button: {
-    borderRadius: 14,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
+    paddingVertical: SPACING.lg,
+    paddingHorizontal: SPACING.xl,
     alignItems: 'center',
     width: '100%',
     maxWidth: 400,
-    marginBottom: 12,
+    marginBottom: SPACING.md,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
   },
   downloadBtn: {
-    backgroundColor: '#1D4ED8',
+    backgroundColor: COLORS.secondary,
+    ...SHADOWS.medium,
   },
   uploadBtn: {
-    backgroundColor: '#7C3AED',
+    backgroundColor: COLORS.muted,
+    ...SHADOWS.medium,
   },
   defaultBtn: {
-    backgroundColor: '#374151',
-    borderWidth: 2,
-    borderColor: '#6B7280',
+    backgroundColor: COLORS.surface,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    ...SHADOWS.small,
   },
   buttonText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '900',
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.label,
+    fontWeight: TYPOGRAPHY.weightBlack,
     letterSpacing: 1,
+    textTransform: 'uppercase',
   },
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
     maxWidth: 400,
-    marginVertical: 16,
-    gap: 12,
+    marginVertical: SPACING.lg,
+    gap: SPACING.md,
   },
   dividerLine: {
     flex: 1,
-    height: 1,
-    backgroundColor: '#374151',
+    height: BORDERS.default,
+    backgroundColor: COLORS.border,
   },
   dividerText: {
-    color: '#6B7280',
-    fontWeight: '900',
-    fontSize: 12,
+    color: COLORS.foreground,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    fontSize: TYPOGRAPHY.small,
     letterSpacing: 1,
+    textTransform: 'uppercase',
   },
   error: {
-    color: '#F87171',
-    marginTop: 8,
-    fontWeight: '700',
+    color: COLORS.error,
+    marginTop: SPACING.sm,
+    fontWeight: TYPOGRAPHY.weightBlack,
     textAlign: 'center',
+    fontSize: TYPOGRAPHY.bodySmall,
   },
   success: {
-    color: '#34D399',
-    marginTop: 8,
-    fontWeight: '700',
+    color: COLORS.secondary,
+    marginTop: SPACING.sm,
+    fontWeight: TYPOGRAPHY.weightBlack,
     textAlign: 'center',
+    fontSize: TYPOGRAPHY.bodySmall,
   },
 });

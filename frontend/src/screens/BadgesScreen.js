@@ -10,13 +10,14 @@ import {
 } from 'react-native';
 import { useApp } from '../context/AppContext';
 import ComicPanel, { SoundEffect } from '../components/ComicPanel';
+import { COLORS, TYPOGRAPHY, SHADOWS, BORDERS, SPACING } from '../theme/neoBrutalism';
 
 export default function BadgesScreen({ navigation }) {
   const { BADGES, badgesEarned, xp, level, streak, totalCompleted } = useApp();
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scroll}
@@ -102,76 +103,86 @@ export default function BadgesScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: COLORS.background,
     ...Platform.select({ web: { minHeight: '100vh' } }),
   },
   scrollView: {
     flex: 1,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: COLORS.background,
   },
   scroll: {
     flexGrow: 1,
-    padding: 16,
+    padding: SPACING.lg,
     paddingBottom: 56,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: COLORS.background,
     ...Platform.select({ web: { minHeight: '100%' } }),
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: SPACING.lg,
+    borderBottomWidth: BORDERS.default,
+    borderBottomColor: COLORS.border,
+    paddingBottom: SPACING.sm,
+    marginHorizontal: -SPACING.lg,
+    paddingHorizontal: SPACING.lg,
+    marginTop: -SPACING.lg,
+    paddingTop: SPACING.sm,
   },
   backBtn: {
-    borderWidth: 2,
-    borderColor: '#555555',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 4,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.sm,
+    backgroundColor: COLORS.surface,
+    ...SHADOWS.small,
   },
   backText: {
-    color: '#FFFFFF',
-    fontWeight: '900',
-    fontSize: 12,
+    color: COLORS.foreground,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    fontSize: TYPOGRAPHY.small,
     letterSpacing: 1,
+    textTransform: 'uppercase',
   },
   statsGrid: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 12,
+    marginBottom: SPACING.md,
   },
   statBox: {
     alignItems: 'center',
   },
   statValue: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: '900',
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.heading5,
+    fontWeight: TYPOGRAPHY.weightBlack,
   },
   statLabel: {
-    color: '#888888',
-    fontSize: 10,
-    fontWeight: '800',
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.tiny,
+    fontWeight: TYPOGRAPHY.weightBold,
     letterSpacing: 1,
-    marginTop: 2,
+    marginTop: SPACING.sm,
+    textTransform: 'uppercase',
   },
   levelRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#333333',
-    paddingTop: 10,
+    borderTopWidth: BORDERS.default,
+    borderTopColor: COLORS.border,
+    paddingTop: SPACING.sm,
   },
   levelLabel: {
-    color: '#AAAAAA',
-    fontWeight: '800',
-    fontSize: 12,
-    marginRight: 6,
+    color: COLORS.foreground,
+    fontWeight: TYPOGRAPHY.weightBold,
+    fontSize: TYPOGRAPHY.small,
+    marginRight: SPACING.sm,
   },
   levelValue: {
-    fontWeight: '900',
-    fontSize: 16,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    fontSize: TYPOGRAPHY.heading5,
     letterSpacing: 1,
   },
   badgeRow: {
@@ -181,48 +192,44 @@ const styles = StyleSheet.create({
   badgeIcon: {
     width: 48,
     height: 48,
-    borderRadius: 24,
-    borderWidth: 3,
-    borderColor: '#000000',
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 4,
+    marginRight: SPACING.md,
+    backgroundColor: COLORS.surface,
+    ...SHADOWS.small,
   },
   badgeIconText: {
-    fontSize: 22,
+    fontSize: TYPOGRAPHY.heading4,
   },
   badgeInfo: {
     flex: 1,
   },
   badgeName: {
-    fontWeight: '900',
-    fontSize: 14,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    fontSize: TYPOGRAPHY.label,
     letterSpacing: 0.5,
-    marginBottom: 2,
+    marginBottom: SPACING.sm,
   },
   badgeDesc: {
-    color: '#888888',
-    fontSize: 11,
-    fontWeight: '700',
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.small,
+    fontWeight: TYPOGRAPHY.weightBold,
   },
   earnedMark: {
     width: 28,
     height: 28,
-    borderRadius: 14,
-    backgroundColor: '#32CD32',
-    borderWidth: 2,
-    borderColor: '#000000',
+    backgroundColor: COLORS.secondary,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
     justifyContent: 'center',
     alignItems: 'center',
+    ...SHADOWS.small,
   },
   earnedText: {
-    color: '#FFFFFF',
-    fontWeight: '900',
-    fontSize: 14,
+    color: COLORS.foreground,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    fontSize: TYPOGRAPHY.label,
   },
 });

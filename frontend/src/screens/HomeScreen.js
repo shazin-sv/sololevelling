@@ -7,13 +7,13 @@ import {
   TouchableOpacity,
   StatusBar,
   Platform,
+  Image,
 } from 'react-native';
 import { useApp } from '../context/AppContext';
-import ComicPanel, { SpeechBubble } from '../components/ComicPanel';
-import ProgressRing from '../components/ProgressRing';
-import StreakFlame from '../components/StreakFlame';
 import { logout } from '../utils/auth';
 import { clearAllData } from '../utils/storage';
+import { COLORS, TYPOGRAPHY, SHADOWS, BORDERS, SPACING } from '../theme/neoBrutalism';
+import { getExerciseVisual } from '../data/workouts';
 
 export default function HomeScreen({ navigation }) {
   const {
@@ -26,7 +26,6 @@ export default function HomeScreen({ navigation }) {
     xpProgress,
     xp,
     streak,
-    getMotivationalMessage,
     todayExercises,
     completed,
     todayKey,
@@ -39,15 +38,7 @@ export default function HomeScreen({ navigation }) {
     saveStatus,
   } = useApp();
 
-  const dayColor = todayWorkout.color || '#1E90FF';
-  const message = getMotivationalMessage();
   const isRest = todayWorkout.isRest;
-
-  const weeklyProgress = Object.keys(todayWorkout.exercises || []).map((_, idx) => {
-    const key = `${today}_${idx}`;
-    return !!(completed[todayKey] || {})[key] || false;
-  });
-
   const [showWeekly, setShowWeekly] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
 
@@ -57,47 +48,32 @@ export default function HomeScreen({ navigation }) {
     setSession?.(null);
   };
 
+  const dayColor = todayWorkout.accent || COLORS.onTertiaryContainer;
+  const activeQuests = todayTotal - todayCompletedCount;
+
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* HEADER */}
-        <View style={styles.header}>
-          <View>
-            <View style={[styles.titleBadge, { backgroundColor: dayColor }]}>
-              <Text style={styles.titleBadgeText}>HEROFIT</Text>
+      <StatusBar barStyle="dark-content" />
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        {/* TOP APP BAR */}
+        <View style={styles.topBar}>
+          <View style={styles.topBarInner}>
+            <View style={styles.logoRow}>
+              <Text style={styles.logoIcon}>⚡</Text>
+              <Text style={styles.logoTitle}>HERO_SYSTEM_V1.0</Text>
+              <View style={styles.onlineBadge}>
+                <View style={styles.pingDot} />
+                <Text style={styles.onlineText}>System: Online</Text>
+              </View>
             </View>
-            {user?.username ? <Text style={styles.userLabel}>@{user.username}</Text> : null}
-          </View>
-          <View style={styles.headerRight}>
-            <TouchableOpacity
-              onPress={saveProgress}
-              disabled={saveStatus === 'saving'}
-              style={[
-                styles.saveBtn,
-                {
-                  backgroundColor:
-                    saveStatus === 'saved' ? '#15803D' : saveStatus === 'error' ? '#991B1B' : '#1E1E1E',
-                  opacity: saveStatus === 'saving' ? 0.6 : 1,
-                  borderColor: saveStatus === 'saved' ? '#22C55E' : saveStatus === 'error' ? '#EF4444' : '#22C55E',
-                },
-              ]}
-            >
-              <Text style={styles.saveBtnText}>
-                {saveStatus === 'saving' ? 'SAVING...' : saveStatus === 'saved' ? 'SAVED ✓' : saveStatus === 'error' ? 'FAIL ✗' : '💾 SAVE'}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setMenuVisible(v => !v)} style={styles.menuBtn}>
-              <Text style={styles.menuBtnText}>☰ MENU</Text>
-            </TouchableOpacity>
+            <View style={styles.levelBox}>
+              <Text style={styles.levelLabel}>Power Level</Text>
+              <Text style={styles.levelValue}>LVL <Text style={{ color: COLORS.onTertiaryContainer }}>{level.rank}</Text></Text>
+            </View>
           </View>
         </View>
 
-        {/* MENU DROPDOWN */}
+        {/* MENU */}
         {menuVisible && (
           <View style={styles.menuPanel}>
             <TouchableOpacity onPress={() => { setMenuVisible(false); navigation.navigate('Badges'); }} style={styles.menuItem}>
@@ -109,129 +85,118 @@ export default function HomeScreen({ navigation }) {
             <TouchableOpacity onPress={() => { setMenuVisible(false); handleLogout(); }} style={styles.menuItem}>
               <Text style={styles.menuItemText}>🚪 LOG OUT</Text>
             </TouchableOpacity>
-            <View style={[styles.levelBadge, styles.menuLevelBadge]}>
-              <Text style={styles.levelText}>{level.name}</Text>
+            <View style={styles.menuLevelBadge}>
+              <Text style={styles.menuLevelText}>{level.name}</Text>
             </View>
           </View>
         )}
 
-        {/* MOTIVATIONAL SPEECH BUBBLE */}
-        <SpeechBubble style={styles.speechBubble}>{message}</SpeechBubble>
+        {/* DAILY QUEST HEADER */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Daily Quest</Text>
+          <View style={styles.streakRow}>
+            <Text style={styles.streakIcon}>🔥</Text>
+            <Text style={styles.streakText}>STREAK: {streak} DAYS</Text>
+          </View>
+        </View>
 
-        {/* TODAY'S WORKOUT CARD */}
-        <ComicPanel
-          color="#2C2C2C"
-          borderColor={dayColor}
-          title={isRest ? 'REST DAY' : 'TODAY\'S WORKOUT'}
-          titleColor={dayColor}
+        {/* SYSTEM NOTIFICATION */}
+        <View style={styles.systemBanner}>
+          <Text style={styles.systemLabel}>[ SYSTEM NOTIFICATION ]</Text>
+          <Text style={styles.systemMessage}>You are going to make it.</Text>
+        </View>
+
+        {/* PROGRESS HUD */}
+        <View style={styles.hudRow}>
+          <View style={[styles.xpCard, SHADOWS.energyGlowBlue]}>
+            <Text style={styles.hudLabel}>Experience Points</Text>
+            <Text style={styles.xpPercent}>{Math.round((xpProgress || 0) * 100)}<Text style={{ fontSize: 20, opacity: 0.5 }}>%</Text></Text>
+            <Text style={styles.xpNext}>NEXT LVL: {nextLevel ? nextLevel.xpRequired : 'MAX'} XP</Text>
+            <View style={styles.xpBarTrack}>
+              <View style={[styles.xpBarFill, { width: `${Math.max(0, Math.min(1, xpProgress || 0)) * 100}%` }]} />
+            </View>
+          </View>
+          <View style={styles.questCountCard}>
+            <Text style={styles.hudLabel}>Active Quests</Text>
+            <Text style={styles.questBig}>{String(activeQuests).padStart(2, '0')}</Text>
+            <Text style={styles.questStatus}>TO-DO STATUS: OPTIMAL</Text>
+          </View>
+        </View>
+
+        {/* SAVE BUTTON */}
+        <TouchableOpacity
+          onPress={saveProgress}
+          disabled={saveStatus === 'saving'}
+          style={[
+            styles.saveBtn,
+            {
+              backgroundColor: saveStatus === 'saved' ? COLORS.secondaryContainer : saveStatus === 'error' ? COLORS.errorContainer : COLORS.surfaceContainerHigh,
+              borderColor: saveStatus === 'saved' ? COLORS.secondary : saveStatus === 'error' ? COLORS.error : COLORS.outlineVariant,
+            },
+          ]}
         >
-          <Text style={[styles.workoutTitle, { color: dayColor }]}>
-            {todayWorkout.title}
+          <Text style={styles.saveBtnText}>
+            {saveStatus === 'saving' ? 'SYNCING...' : saveStatus === 'saved' ? 'SAVED ✓' : saveStatus === 'error' ? 'FAIL ✗' : '💾 SAVE PROGRESS'}
           </Text>
-          <Text style={styles.workoutSubtitle}>{todayWorkout.subtitle}</Text>
+        </TouchableOpacity>
 
-          {!isRest && (
-            <>
-              <View style={styles.progressRow}>
-                <ProgressRing
-                  progress={todayCompletedCount}
-                  total={todayTotal}
-                  size={110}
-                  strokeWidth={10}
-                  color={dayColor}
-                />
-                <View style={styles.statsColumn}>
-                  <StreakFlame streak={streak} size="small" />
-                  <View style={styles.xpBox}>
-                    <Text style={styles.xpLabel}>XP</Text>
-                    <Text style={styles.xpValue}>{xp}</Text>
+        {/* QUEST CARDS — BENTO GRID */}
+        {!isRest && todayExercises.map((ex, i) => {
+          const status = completed[todayKey]?.[ex.id];
+          const isDone = status === 'complete';
+          const isSkipped = status === 'skip';
+          return (
+            <TouchableOpacity
+              key={ex.id}
+              onPress={() => navigation.navigate('ExerciseDetail', { exercise: ex, color: dayColor, isToday: true, isCompleted: isDone, decision: status, onComplete: () => {} })}
+              style={styles.questCard}
+            >
+              <View style={styles.questImageWrap}>
+                <Image source={{ uri: getExerciseVisual(ex) }} style={styles.questImage} resizeMode="cover" />
+                <View style={styles.questImageOverlay} />
+              </View>
+              <View style={styles.questContent}>
+                <View style={styles.questTag}>
+                  <Text style={styles.questTagText}>{todayWorkout.title}</Text>
+                </View>
+                <Text style={styles.questName}>{ex.name.toUpperCase()}</Text>
+                <Text style={styles.questSets}>{ex.sets}</Text>
+                <View style={styles.questStatusRow}>
+                  <Text style={[styles.questStatusText, isDone && { color: COLORS.secondary }, isSkipped && { color: COLORS.error }]}>
+                    {isDone ? '✓ CONQUERED' : isSkipped ? '✗ MISSED' : '⏳ PENDING'}
+                  </Text>
+                  <View style={styles.enterBtn}>
+                    <Text style={styles.enterBtnText}>ENTER →</Text>
                   </View>
                 </View>
               </View>
-
-              {nextLevel && (
-                <View style={styles.xpBarContainer}>
-                  <View style={[styles.xpBarFill, { width: `${Math.max(0, Math.min(1, xpProgress)) * 100}%`, backgroundColor: dayColor }]} />
-                  <Text style={styles.xpBarText}>
-                    {xp} / {nextLevel.xpRequired} XP → {nextLevel.name}
-                  </Text>
-                </View>
-              )}
-            </>
-          )}
-
-          {isRest && (
-            <View style={styles.restBox}>
-              <Text style={styles.restIcon}>💤</Text>
-              <Text style={styles.restText}>RECOVER. GROW. DOMINATE.</Text>
-            </View>
-          )}
-        </ComicPanel>
-
-        {/* ACTION BUTTONS */}
-        {!isRest && (
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Workout', { day: today })}
-            style={[styles.actionBtn, { backgroundColor: dayColor }]}
-          >
-            <Text style={styles.actionBtnText}>
-              {todayCompletedCount === todayTotal ? 'VIEW WORKOUT' : 'START WORKOUT'}
-            </Text>
-          </TouchableOpacity>
-        )}
+            </TouchableOpacity>
+          );
+        })}
 
         {isRest && (
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Workout', { day: today })}
-            style={[styles.actionBtn, { backgroundColor: '#1E90FF' }]}
-          >
-            <Text style={styles.actionBtnText}>VIEW RECOVERY TIPS</Text>
-          </TouchableOpacity>
+          <View style={styles.restCard}>
+            <Text style={styles.restIcon}>💤</Text>
+            <Text style={styles.restTitle}>RECOVER LIKE A HERO</Text>
+            <Text style={styles.restBody}>Sleep well. Eat protein. Stretch. Tomorrow you hunt again.</Text>
+          </View>
         )}
 
         {/* TOTAL STATS */}
         <View style={styles.statsRow}>
-          <View style={[styles.statBox, { borderColor: '#FFD700' }]}>
-            <Text style={styles.statBoxValue}>{totalCompleted}</Text>
-            <Text style={styles.statBoxLabel}>WORKOUTS DONE</Text>
+          <View style={[styles.statBox, { borderColor: COLORS.secondary }]}>
+            <Text style={styles.statValue}>{totalCompleted}</Text>
+            <Text style={styles.statLabel}>WORKOUTS DONE</Text>
           </View>
-          <View style={[styles.statBox, { borderColor: '#E23636' }]}>
-            <Text style={styles.statBoxValue}>{streak}</Text>
-            <Text style={styles.statBoxLabel}>DAY STREAK</Text>
+          <View style={[styles.statBox, { borderColor: COLORS.onTertiaryContainer }]}>
+            <Text style={styles.statValue}>{streak}</Text>
+            <Text style={styles.statLabel}>DAY STREAK</Text>
           </View>
         </View>
 
-        {/* TODAY'S EXERCISE CHECKLIST */}
-        {!isRest && (
-          <ComicPanel
-            color="#141414"
-            borderColor={dayColor}
-            title="TODAY'S QUEST LOG"
-            titleColor={dayColor}
-            style={{ marginTop: 16 }}
-          >
-            {todayExercises.map((ex) => {
-              const status = completed[todayKey]?.[ex.id];
-              const isDone = status === 'complete';
-              const isSkipped = status === 'skip';
-              return (
-                <View key={ex.id} style={styles.checkRow}>
-                  <Text style={styles.checkIcon}>{isDone ? '✅' : isSkipped ? '❌' : '⏳'}</Text>
-                  <Text style={[styles.checkText, isDone && styles.checkDone, isSkipped && styles.checkSkipped]}>
-                    {ex.name}
-                  </Text>
-                  <Text style={styles.checkSets}>{ex.sets}</Text>
-                </View>
-              );
-            })}
-          </ComicPanel>
-        )}
-
-        {/* WEEKLY SCHEDULE PREVIEW */}
-        <TouchableOpacity onPress={() => setShowWeekly(!showWeekly)} style={styles.toggleWeekly}>
-          <Text style={styles.toggleWeeklyText}>
-            {showWeekly ? 'HIDE' : 'SHOW'} WEEKLY SCHEDULE
-          </Text>
+        {/* WEEKLY SCHEDULE */}
+        <TouchableOpacity onPress={() => setShowWeekly(v => !v)} style={styles.weeklyToggle}>
+          <Text style={styles.weeklyToggleText}>{showWeekly ? 'HIDE' : 'SHOW'} WEEKLY SCHEDULE</Text>
         </TouchableOpacity>
 
         {showWeekly && (
@@ -242,32 +207,17 @@ export default function HomeScreen({ navigation }) {
                 <TouchableOpacity
                   key={dayName}
                   onPress={() => navigation.navigate('Workout', { day: dayName })}
-                  style={[
-                    styles.dayCard,
-                    { borderColor: schedule.color || '#555', opacity: isToday ? 1 : 0.7 },
-                  ]}
+                  style={[styles.dayCard, { borderColor: schedule.accent || COLORS.outline, opacity: isToday ? 1 : 0.7 }]}
                 >
-                  <Text style={[styles.dayName, { color: schedule.color || '#FFF' }]}>
+                  <Text style={[styles.dayName, { color: schedule.accent || COLORS.onSurface }]}>
                     {dayName.slice(0, 3).toUpperCase()}
                   </Text>
                   {isToday && todayTotal > 0 && (
-                    <View
-                      style={[
-                        styles.dayPill,
-                        {
-                          backgroundColor:
-                            todayCompletedCount === todayTotal ? '#22C55E' : schedule.color || '#555',
-                        },
-                      ]}
-                    >
-                      <Text style={styles.dayPillText}>
-                        {todayCompletedCount}/{todayTotal}
-                      </Text>
+                    <View style={[styles.dayPill, { backgroundColor: todayCompletedCount === todayTotal ? COLORS.secondaryContainer : schedule.accent || COLORS.outline }]}>
+                      <Text style={styles.dayPillText}>{todayCompletedCount}/{todayTotal}</Text>
                     </View>
                   )}
-                  <Text style={styles.dayTitle} numberOfLines={1}>
-                    {schedule.title}
-                  </Text>
+                  <Text style={styles.dayTitle} numberOfLines={1}>{schedule.title}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -281,388 +231,471 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: COLORS.background,
     ...Platform.select({ web: { minHeight: '100vh' } }),
   },
   scrollView: {
     flex: 1,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: COLORS.background,
   },
   scroll: {
     flexGrow: 1,
-    padding: 16,
+    padding: SPACING.lg,
     paddingBottom: 56,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: COLORS.background,
     ...Platform.select({ web: { minHeight: '100%' } }),
   },
-  header: {
+
+  // Top App Bar
+  topBar: {
+    backgroundColor: COLORS.background,
+    borderBottomWidth: BORDERS.default,
+    borderBottomColor: COLORS.border,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    marginHorizontal: -SPACING.lg,
+    marginTop: -SPACING.lg,
+    marginBottom: SPACING.lg,
+  },
+  topBarInner: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
   },
-  headerRight: {
+  logoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    flexWrap: 'wrap',
-    justifyContent: 'flex-end',
+    gap: SPACING.sm,
   },
-  badgeBtn: {
-    borderWidth: 2,
-    borderColor: '#FFD700',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    backgroundColor: '#000000',
+  logoIcon: {
+    fontSize: TYPOGRAPHY.bodyLarge,
+    fontWeight: TYPOGRAPHY.weightBlack,
   },
-  badgeBtnText: {
-    color: '#FFD700',
-    fontWeight: '900',
-    fontSize: 10,
-    letterSpacing: 1,
+  logoTitle: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.body,
+    fontWeight: TYPOGRAPHY.weightBold,
+    textTransform: 'uppercase',
+    letterSpacing: -1,
   },
-  titleBadge: {
-    borderWidth: 3,
-    borderColor: '#000000',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    transform: [{ rotate: '-2deg' }],
-    shadowColor: '#000',
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 6,
-  },
-  titleBadgeText: {
-    color: '#FFFFFF',
-    fontWeight: '900',
-    fontSize: 18,
-    letterSpacing: 2,
-    textShadowColor: '#000',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 0,
-  },
-  userLabel: {
-    color: '#94A3B8',
-    fontSize: 11,
-    fontWeight: '800',
-    marginTop: 6,
-    marginLeft: 4,
-    letterSpacing: 1,
-  },
-  logoutBtn: {
-    borderWidth: 2,
-    borderColor: '#334155',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    backgroundColor: '#020617',
-  },
-  logoutBtnText: {
-    color: '#CBD5E1',
-    fontWeight: '900',
-    fontSize: 10,
-    letterSpacing: 1,
-  },
-  levelBadge: {
-    backgroundColor: '#000000',
-    borderWidth: 2,
-    borderColor: '#FFD700',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    transform: [{ rotate: '2deg' }],
-  },
-  levelText: {
-    color: '#FFD700',
-    fontWeight: '900',
-    fontSize: 12,
-    letterSpacing: 1,
-  },
-  speechBubble: {
-    marginBottom: 12,
-  },
-  workoutTitle: {
-    fontSize: 22,
-    fontWeight: '900',
-    letterSpacing: 1,
-    marginBottom: 4,
-    textShadowColor: '#000',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 0,
-  },
-  workoutSubtitle: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#CCCCCC',
-    letterSpacing: 2,
-    marginBottom: 16,
-  },
-  progressRow: {
+  onlineBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-around',
-    marginBottom: 12,
+    gap: SPACING.sm,
+    marginLeft: SPACING.sm,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 2,
+    backgroundColor: COLORS.secondary,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    ...SHADOWS.small,
   },
-  statsColumn: {
+  pingDot: {
+    width: 8,
+    height: 8,
+    backgroundColor: COLORS.foreground,
+  },
+  onlineText: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.tiny,
+    fontWeight: TYPOGRAPHY.weightBold,
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+  },
+  levelBox: {
+    backgroundColor: COLORS.accent,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
     alignItems: 'center',
+    ...SHADOWS.medium,
   },
-  xpBox: {
-    marginTop: 8,
-    backgroundColor: '#000000',
-    borderWidth: 2,
-    borderColor: '#555555',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
+  levelLabel: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.tiny,
+    fontWeight: TYPOGRAPHY.weightBold,
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    marginBottom: 2,
   },
-  xpLabel: {
-    color: '#888888',
-    fontSize: 10,
-    fontWeight: '800',
+  levelValue: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.heading5,
+    fontWeight: TYPOGRAPHY.weightBlack,
+  },
+
+  // Section header
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    borderBottomWidth: BORDERS.default,
+    borderBottomColor: COLORS.border,
+    paddingBottom: SPACING.sm,
+    marginBottom: SPACING.md,
+  },
+  sectionTitle: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.heading4,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    textTransform: 'uppercase',
+  },
+  streakRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  streakIcon: {
+    fontSize: TYPOGRAPHY.label,
+  },
+  streakText: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.small,
+    fontWeight: TYPOGRAPHY.weightBold,
+  },
+
+  // System banner
+  systemBanner: {
+    backgroundColor: COLORS.secondary,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    padding: SPACING.lg,
+    marginBottom: SPACING.lg,
+    ...SHADOWS.medium,
+  },
+  systemLabel: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.small,
+    fontWeight: TYPOGRAPHY.weightBold,
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    marginBottom: SPACING.sm,
+  },
+  systemMessage: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.heading5,
+    fontWeight: TYPOGRAPHY.weightBlack,
+  },
+
+  // HUD
+  hudRow: {
+    flexDirection: 'row',
+    gap: SPACING.md,
+    marginBottom: SPACING.lg,
+  },
+  xpCard: {
+    flex: 2,
+    backgroundColor: COLORS.surface,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    padding: SPACING.lg,
+    ...SHADOWS.large,
+  },
+  hudLabel: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.small,
+    fontWeight: TYPOGRAPHY.weightBold,
+    textTransform: 'uppercase',
     letterSpacing: 1,
-    textAlign: 'center',
+    marginBottom: SPACING.sm,
   },
-  xpValue: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '900',
-    textAlign: 'center',
+  xpPercent: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.heading1,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    lineHeight: TYPOGRAPHY.heading1,
   },
-  xpBarContainer: {
-    height: 24,
-    backgroundColor: '#000000',
-    borderWidth: 2,
-    borderColor: '#555555',
-    borderRadius: 4,
+  xpNext: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.small,
+    fontWeight: TYPOGRAPHY.weightBold,
+    marginTop: SPACING.sm,
+  },
+  xpBarTrack: {
+    height: 16,
+    backgroundColor: COLORS.background,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    marginTop: SPACING.md,
     overflow: 'hidden',
-    marginTop: 8,
-    justifyContent: 'center',
   },
   xpBarFill: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
+    height: '100%',
+    backgroundColor: COLORS.accent,
   },
-  xpBarText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '900',
-    textAlign: 'center',
-    zIndex: 1,
+  questCountCard: {
+    flex: 1,
+    backgroundColor: COLORS.muted,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    padding: SPACING.lg,
+    justifyContent: 'center',
+    ...SHADOWS.medium,
   },
-  restBox: {
+  questBig: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.heading1,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    lineHeight: TYPOGRAPHY.heading1,
+  },
+  questStatus: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.small,
+    fontWeight: TYPOGRAPHY.weightBold,
+    marginTop: SPACING.sm,
+  },
+
+  // Save button
+  saveBtn: {
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    paddingVertical: SPACING.md,
     alignItems: 'center',
-    paddingVertical: 16,
+    marginBottom: SPACING.lg,
+    backgroundColor: COLORS.secondary,
+    ...SHADOWS.medium,
+  },
+  saveBtnText: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.label,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+  },
+
+  // Quest cards
+  questCard: {
+    backgroundColor: COLORS.surface,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    overflow: 'hidden',
+    marginBottom: SPACING.lg,
+    ...SHADOWS.large,
+  },
+  questImageWrap: {
+    height: 160,
+    width: '100%',
+    position: 'relative',
+  },
+  questImage: {
+    width: '100%',
+    height: '100%',
+  },
+  questImageOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  questContent: {
+    padding: SPACING.lg,
+  },
+  questTag: {
+    backgroundColor: COLORS.accent,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 2,
+    alignSelf: 'flex-start',
+    marginBottom: SPACING.sm,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+  },
+  questTagText: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.tiny,
+    fontWeight: TYPOGRAPHY.weightBold,
+    textTransform: 'uppercase',
+  },
+  questName: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.heading4,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    marginBottom: SPACING.sm,
+  },
+  questSets: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.bodySmall,
+    fontWeight: TYPOGRAPHY.weightBold,
+    marginBottom: SPACING.md,
+  },
+  questStatusRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  questStatusText: {
+    fontSize: TYPOGRAPHY.small,
+    fontWeight: TYPOGRAPHY.weightBold,
+    color: COLORS.foreground,
+  },
+  enterBtn: {
+    backgroundColor: COLORS.accent,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    ...SHADOWS.small,
+  },
+  enterBtnText: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.label,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    textTransform: 'uppercase',
+  },
+
+  // Rest card
+  restCard: {
+    backgroundColor: COLORS.surface,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    padding: SPACING.xxl,
+    alignItems: 'center',
+    marginBottom: SPACING.lg,
+    ...SHADOWS.large,
   },
   restIcon: {
     fontSize: 48,
-    marginBottom: 8,
+    marginBottom: SPACING.md,
   },
-  restText: {
-    color: '#1E90FF',
-    fontWeight: '900',
-    fontSize: 14,
-    letterSpacing: 2,
+  restTitle: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.heading5,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    marginBottom: SPACING.sm,
   },
-  actionBtn: {
-    marginTop: 16,
-    borderWidth: 3,
-    borderColor: '#000000',
-    paddingVertical: 14,
+  restBody: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.body,
+    textAlign: 'center',
+    lineHeight: TYPOGRAPHY.body,
+    fontWeight: TYPOGRAPHY.weightBold,
+  },
+
+  // Stats row
+  statsRow: {
+    flexDirection: 'row',
+    gap: SPACING.md,
+    marginTop: SPACING.sm,
+    marginBottom: SPACING.lg,
+  },
+  statBox: {
+    flex: 1,
+    backgroundColor: COLORS.surface,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    paddingVertical: SPACING.lg,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 6,
+    ...SHADOWS.medium,
   },
-  actionBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '900',
-    fontSize: 16,
-    letterSpacing: 2,
-    textShadowColor: '#000',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 0,
+  statValue: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.heading3,
+    fontWeight: TYPOGRAPHY.weightBlack,
   },
-  toggleWeekly: {
-    marginTop: 20,
+  statLabel: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.tiny,
+    fontWeight: TYPOGRAPHY.weightBold,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginTop: SPACING.sm,
+  },
+
+  // Weekly schedule
+  weeklyToggle: {
     alignSelf: 'center',
-    borderWidth: 2,
-    borderColor: '#555555',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    marginBottom: SPACING.lg,
+    backgroundColor: COLORS.surface,
+    ...SHADOWS.small,
   },
-  toggleWeeklyText: {
-    color: '#AAAAAA',
-    fontWeight: '800',
-    fontSize: 11,
+  weeklyToggleText: {
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.small,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    textTransform: 'uppercase',
     letterSpacing: 1,
   },
   weeklyGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 12,
-    gap: 8,
+    gap: SPACING.sm,
     justifyContent: 'space-between',
   },
   dayCard: {
-    width: '31%',
-    backgroundColor: '#2C2C2C',
-    borderWidth: 2,
-    padding: 10,
-    borderRadius: 4,
+    width: '30%',
+    backgroundColor: COLORS.surface,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    padding: SPACING.sm,
     alignItems: 'center',
+    ...SHADOWS.small,
   },
   dayName: {
-    fontWeight: '900',
-    fontSize: 14,
-    marginBottom: 4,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    fontSize: TYPOGRAPHY.label,
+    marginBottom: SPACING.sm,
+    color: COLORS.foreground,
   },
   dayTitle: {
-    color: '#AAAAAA',
-    fontSize: 9,
-    fontWeight: '700',
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.tiny,
+    fontWeight: TYPOGRAPHY.weightBold,
     textAlign: 'center',
   },
-  syncBtn: {
-    borderWidth: 2,
-    borderColor: '#22C55E',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    backgroundColor: '#020617',
-  },
-  syncBtnText: {
-    color: '#22C55E',
-    fontWeight: '900',
-    fontSize: 10,
-    letterSpacing: 1,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 16,
-  },
-  statBox: {
-    flex: 1,
-    backgroundColor: '#111111',
-    borderWidth: 2,
-    borderRadius: 8,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  statBoxValue: {
-    color: '#FFFFFF',
-    fontSize: 22,
-    fontWeight: '900',
-  },
-  statBoxLabel: {
-    color: '#888888',
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1,
-    marginTop: 4,
-  },
-  checkRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#222222',
-  },
-  checkIcon: {
-    fontSize: 14,
-    marginRight: 10,
-  },
-  checkText: {
-    flex: 1,
-    color: '#DDDDDD',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  checkDone: {
-    color: '#22C55E',
-    textDecorationLine: 'line-through',
-  },
-  checkSkipped: {
-    color: '#EF4444',
-    textDecorationLine: 'line-through',
-  },
-  checkSets: {
-    color: '#888888',
-    fontSize: 11,
-    fontWeight: '800',
-  },
   dayPill: {
-    borderRadius: 999,
-    paddingHorizontal: 6,
+    paddingHorizontal: SPACING.sm,
     paddingVertical: 2,
-    marginVertical: 4,
+    marginVertical: SPACING.sm,
+    backgroundColor: COLORS.accent,
+    borderWidth: BORDERS.thin,
+    borderColor: COLORS.border,
   },
   dayPillText: {
-    color: '#FFFFFF',
-    fontSize: 9,
-    fontWeight: '900',
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.tiny,
+    fontWeight: TYPOGRAPHY.weightBlack,
   },
-  saveBtn: {
-    borderWidth: 2,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    backgroundColor: '#1E1E1E',
-  },
-  saveBtnText: {
-    color: '#22C55E',
-    fontWeight: '900',
-    fontSize: 10,
-    letterSpacing: 1,
-  },
-  menuBtn: {
-    borderWidth: 2,
-    borderColor: '#FFD700',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    backgroundColor: '#000000',
-  },
-  menuBtnText: {
-    color: '#FFD700',
-    fontWeight: '900',
-    fontSize: 10,
-    letterSpacing: 1,
-  },
+
+  // Menu
   menuPanel: {
-    backgroundColor: '#111111',
-    borderWidth: 2,
-    borderColor: '#333333',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 12,
-    gap: 8,
+    backgroundColor: COLORS.surface,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    padding: SPACING.md,
+    marginBottom: SPACING.lg,
+    gap: SPACING.sm,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
+    ...SHADOWS.medium,
   },
   menuItem: {
-    borderWidth: 2,
-    borderColor: '#555555',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 4,
-    backgroundColor: '#020617',
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    backgroundColor: COLORS.background,
+    ...SHADOWS.small,
   },
   menuItemText: {
-    color: '#FFFFFF',
-    fontWeight: '900',
-    fontSize: 10,
+    color: COLORS.foreground,
+    fontSize: TYPOGRAPHY.small,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    textTransform: 'uppercase',
     letterSpacing: 1,
   },
   menuLevelBadge: {
-    transform: [{ rotate: '2deg' }],
+    backgroundColor: COLORS.muted,
+    borderWidth: BORDERS.default,
+    borderColor: COLORS.border,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.sm,
+  },
+  menuLevelText: {
+    color: COLORS.foreground,
+    fontWeight: TYPOGRAPHY.weightBlack,
+    fontSize: TYPOGRAPHY.small,
+    letterSpacing: 1,
   },
 });
